@@ -1,6 +1,6 @@
 from radiation.mesh import Mesh
 import numpy as np
-from input_data import InputData
+from radiation.input_data import InputData
 
 def assemble_source(alpha: float, mu: float, mesh: Mesh, data: InputData) -> np.ndarray:
     bs = np.zeros(mesh.n_points)

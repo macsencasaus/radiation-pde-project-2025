@@ -1,6 +1,6 @@
-from src.radiation.mesh import Mesh
-from src.radiation.input_data import InputData
-from src.radiation.assembly_system import assemble_transport_matrix, assemble_source
+from src.mesh import Mesh
+from src.input_data import InputData
+from src.assembly_system import assemble_transport_matrix, assemble_source
 from scipy.sparse.linalg import spsolve
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,7 +23,7 @@ def exact(x: float, data: InputData) -> float:
     if x0 <= x and x <= x1:
         return q1 / s1 * (1 - np.exp(s1 * (x0-x)))
     elif x1 < x and x <= x2:
-        u1 * np.exp(s2 * (x1 - x))
+        return u1 * np.exp(s2 * (x1 - x))
     else:
         return u2 * np.exp(s3 * (x2 - x)) + q3 / s3 * (1 - np.exp(s3 * (x2 - x)))
 

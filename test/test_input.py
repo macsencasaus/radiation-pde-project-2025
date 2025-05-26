@@ -1,6 +1,6 @@
 import unittest
 
-from radiation.input_data import InputData
+from src.input_data import InputData
 
 
 class TestInputData(unittest.TestCase):

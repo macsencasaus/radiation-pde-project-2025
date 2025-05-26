@@ -4,9 +4,9 @@ import numpy as np
 
 from scipy.sparse import csr_matrix
 
-from radiation.assembly_system import assemble_source, generate_sparse_pattern, assemble_transport_matrix
-from radiation.input_data import InputData
-from radiation.mesh import Mesh
+from src.assembly_system import assemble_source, generate_sparse_pattern, assemble_transport_matrix
+from src.input_data import InputData
+from src.mesh import Mesh
 
 
 class TestAssemblySystem(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestAssemblySystem(unittest.TestCase):
         inp = InputData(input_dir)
         m = Mesh(inp)
 
-        bs = assemble_source(inp.boundary_values[0], 1, m, inp)
+        bs = assemble_source(1, m, inp)
 
         print(bs)
 

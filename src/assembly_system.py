@@ -1,6 +1,6 @@
-from radiation.mesh import Mesh
+from src.mesh import Mesh
 import numpy as np
-from radiation.input_data import InputData
+from src.input_data import InputData
 from scipy.sparse import csr_matrix
 
 def assemble_source(mu: float, mesh: Mesh, data: InputData) -> np.ndarray:

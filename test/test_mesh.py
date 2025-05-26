@@ -1,7 +1,7 @@
 import unittest
 
-from radiation.input_data import InputData
-from radiation.mesh import Mesh
+from src.input_data import InputData
+from src.mesh import Mesh
 
 
 class TestInputData(unittest.TestCase):

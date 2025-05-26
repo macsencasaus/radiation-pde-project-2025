@@ -4,5 +4,6 @@
     "zone_length" : [1, 1, 1, 1, 1],
     "sigma_t" : [10, 10, 10, 10, 10],
     "source" : [2, 4, 6, 4, 2],
-    "boundary_values" : [100, 2]
+    "boundary_values" : [100, 2],
+    "SUPG_tuning" : 1
 }

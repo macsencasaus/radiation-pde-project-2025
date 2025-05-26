@@ -3,7 +3,7 @@ import numpy as np
 from radiation.input_data import InputData
 from scipy.sparse import csr_matrix
 
-def assemble_source(alpha: float, mu: float, mesh: Mesh, data: InputData) -> np.ndarray:
+def assemble_source(mu: float, mesh: Mesh, data: InputData) -> np.ndarray:
     bs = np.zeros(mesh.n_points)
     for i in range(1, mesh.n_points - 1):
         left_side = data.source[mesh.mat_id[i - 1]] * mesh.h[i - 1]
@@ -12,9 +12,9 @@ def assemble_source(alpha: float, mu: float, mesh: Mesh, data: InputData) -> np.
 
     if mu < 0:
         bs[0] = mesh.h[0] * data.source[0] / 2
-        bs[-1] = alpha
+        bs[-1] = data.boundary_values[1]
     else:
-        bs[0]  = alpha
+        bs[0]  = data.boundary_values[0]
         bs[-1] = mesh.h[-1] * data.source[-1] / 2
     return bs
 
@@ -64,7 +64,7 @@ def assemble_transport_matrix(mu: float, mesh: Mesh, data: InputData) -> csr_mat
     for i in range(mesh.n_points):
         if i == 0:
             matrix_data[dataIdx] = -mu / 2 + (1 / 3) * data.sigma_t[0] * mesh.h[0]
-            matrix_data[dataIdx + 1] = -mu/2 + data.sigma_t[0] * mesh.h[0]/6
+            matrix_data[dataIdx + 1] = mu / 2 + data.sigma_t[0] * mesh.h[0]/6
             dataIdx += 2
             pass
         elif i == mesh.n_points - 1:
@@ -77,7 +77,7 @@ def assemble_transport_matrix(mu: float, mesh: Mesh, data: InputData) -> csr_mat
             # i == j
             matrix_data[dataIdx + 1] = (1/3) * (mesh.h[i] * data.sigma_t[mesh.mat_id[i]] + mesh.h[i-1] * data.sigma_t[mesh.mat_id[i - 1]])
             # i == j + 1
-            matrix_data[dataIdx + 2] = -mu/2 + data.sigma_t[mesh.mat_id[i]] * mesh.h[i]/6
+            matrix_data[dataIdx + 2] = mu / 2 + data.sigma_t[mesh.mat_id[i]] * mesh.h[i]/6
             dataIdx += 3
     
     # NOTE: strong enforcement of boundary conditions

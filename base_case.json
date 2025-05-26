@@ -1,0 +1,9 @@
+{
+    "n_zones" : 1,
+    "n_cells" : [200],
+    "zone_length" : [2],
+    "sigma_t" : [1],
+    "source" : [1],
+    "boundary_values" : [1,0],
+    "SUPG_tuning" : 1
+}

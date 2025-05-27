@@ -1,0 +1,8 @@
+{
+    "n_zones" : 3,
+    "n_cells" : [10000, 50, 50],
+    "zone_length" : [1, 1, 1],
+    "sigma_t" : [0.1, 1, 1],
+    "source" : [0.1, 1, 1],
+    "boundary_values" : [0,0]
+}

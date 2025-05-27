@@ -44,8 +44,12 @@ if __name__ == "__main__":
 
     u = spsolve(transport_mat, b, permc_spec=None, use_umfpack=True)
 
-    plt.plot(m.gridpoints, u)
-    if inp.n_zones == 3:
-        plt.plot(m.gridpoints, [exact(x, inp) for x in m.gridpoints])
+    plt.plot(m.gridpoints, u, label = "FEM")
 
+    # we have an exact solution for the case of three zones,
+    # mu = 1, and homogenous boundary data 
+    if (inp.n_zones == 3 and mu == 1 and inp.boundary_values[0] == 0):
+        plt.plot(m.gridpoints, [exact(x, inp) for x in m.gridpoints], label= "exact")
+
+    plt.legend() 
     plt.show()

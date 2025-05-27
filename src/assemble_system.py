@@ -10,15 +10,9 @@ def assemble_source(mu: float, mesh: Mesh, data: InputData) -> np.ndarray:
         right_side = data.source[mesh.mat_id[i]] * mesh.h[i]
         bs[i] = (left_side + right_side) / 2
 
-    
-    # NOTE: strong enforcement of boundary conditions
-    # TODO: change to weak enforcement 
-    if mu < 0:
-        bs[0] = mesh.h[0] * data.source[0] / 2
-        bs[-1] = data.boundary_values[1]
-    else:
-        bs[0]  = data.boundary_values[0]
-        bs[-1] = mesh.h[-1] * data.source[-1] / 2
+    bs[0] = mesh.h[0] * data.source[0] / 2 + (0.5 * (np.abs(mu) + mu) * data.boundary_values[0])
+    bs[-1] = mesh.h[-1] * data.source[-1] / 2 + (0.5 * (np.abs(mu) - mu) * data.boundary_values[1])
+
     return bs
 
 def generate_sparse_pattern(mesh: Mesh) -> tuple[np.ndarray, np.ndarray]:
@@ -66,31 +60,26 @@ def assemble_transport_matrix(mu: float, mesh: Mesh, data: InputData) -> csr_mat
     dataIdx = 0
     for i in range(mesh.n_points):
         if i == 0:
-            matrix_data[dataIdx] = -mu / 2 + (1 / 3) * data.sigma_t[0] * mesh.h[0]
+            # diagonal (first entry) (i == j == 0)
+            matrix_data[dataIdx] = -mu / 2 + (1 / 3) * data.sigma_t[0] * mesh.h[0] + (abs(mu) + mu)/2
+            # upper diagonal (i == j - 1)
             matrix_data[dataIdx + 1] = mu / 2 + data.sigma_t[0] * mesh.h[0]/6
             dataIdx += 2
             pass
         elif i == mesh.n_points - 1:
+            # lower diagonal (i == j + 1)
             matrix_data[dataIdx] = -mu / 2 + data.sigma_t[-1] * mesh.h[-1] / 6
-            matrix_data[dataIdx + 1] = mu / 2 + (1 / 3) * data.sigma_t[-1] * mesh.h[-1]
+            # diagonal (last entry) (i == j == -1)
+            matrix_data[dataIdx + 1] = mu / 2 + (1 / 3) * data.sigma_t[-1] * mesh.h[-1] + (abs(mu) - mu)/2
             pass
         else:
-            # i == j - 1
-            matrix_data[dataIdx] = -mu / 2 + data.sigma_t[mesh.mat_id[i]] * mesh.h[i] / 6
-            # i == j
+            # lower diagonal (i == j + 1)
+            matrix_data[dataIdx] = -mu / 2 + data.sigma_t[mesh.mat_id[i - 1]] * mesh.h[i - 1] / 6
+            # diagonal (i == j)
             matrix_data[dataIdx + 1] = (1/3) * (mesh.h[i] * data.sigma_t[mesh.mat_id[i]] + mesh.h[i-1] * data.sigma_t[mesh.mat_id[i - 1]])
-            # i == j + 1
+            # upper diagonal (i == j - 1)
             matrix_data[dataIdx + 2] = mu / 2 + data.sigma_t[mesh.mat_id[i]] * mesh.h[i]/6
             dataIdx += 3
-    
-    # NOTE: strong enforcement of boundary conditions
-    # TODO: Change to weak enforcement
-    if mu > 0:
-        matrix_data[0] = 1
-        matrix_data[1] = 0
-    elif mu < 0:
-        matrix_data[-1] = 1
-        matrix_data[-2] = 0
-    
+
     matrix = csr_matrix((matrix_data, (rows, cols)), shape = (mesh.n_points, mesh.n_points))
     return matrix

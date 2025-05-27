@@ -47,7 +47,7 @@ if __name__ == "__main__":
     plt.plot(m.gridpoints, u, label = "FEM")
 
     # we have an exact solution for the case of three zones,
-    # mu = 1, and homogenous boundary data 
+    # mu = 1, and homogeneous boundary data 
     if (inp.n_zones == 3 and mu == 1 and inp.boundary_values[0] == 0):
         plt.plot(m.gridpoints, [exact(x, inp) for x in m.gridpoints], label= "exact")
 

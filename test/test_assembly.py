@@ -4,14 +4,14 @@ import numpy as np
 
 from scipy.sparse import csr_matrix
 
-from src.assembly_system import assemble_source, generate_sparse_pattern, assemble_transport_matrix
+from src.assemble_system import assemble_source, generate_sparse_pattern, assemble_transport_matrix
 from src.input_data import InputData
 from src.mesh import Mesh
 
 
-class TestAssemblySystem(unittest.TestCase):
+class TestAssembleSystem(unittest.TestCase):
 
-    def test_assembly_source(self):
+    def test_assemble_source(self):
         input_dir = "test/test-inputs/input2.json"
 
         inp = InputData(input_dir)

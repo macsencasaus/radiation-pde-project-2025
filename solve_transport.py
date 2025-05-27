@@ -1,6 +1,6 @@
 from src.mesh import Mesh
 from src.input_data import InputData
-from src.assembly_system import assemble_transport_matrix, assemble_source
+from src.assemble_system import assemble_transport_matrix, assemble_source
 from scipy.sparse.linalg import spsolve
 import matplotlib.pyplot as plt
 import numpy as np

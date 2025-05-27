@@ -4,7 +4,39 @@ from src.input_data import InputData
 from scipy.sparse import csr_matrix
 
 def assemble_scattered_source(mu: float, mesh: Mesh, data: InputData, cs: np.ndarray) -> np.ndarray:
-    pass
+    bs = np.zeros(mesh.n_points)
+
+    sigma_t = [data.sigma_t[mesh.mat_id[cell]] for cell in mesh.cells]
+    sigma_s = [data.sigma_s[mesh.mat_id[cell]] for cell in mesh.cells]
+
+    tuning = data.supg_tuning_value
+    tau = mu * tuning / max(abs(mu) / mesh.h[0], sigma_t[0])
+
+    # j == 0
+    # ------
+    # i == 0
+    bs[0] =  sigma_s[0] * cs[0] * mesh.h[0] / 3 - tau * mu * cs[0] * sigma_s[0] / 2
+    # i == 1
+    bs[0] += sigma_s[0] * cs[1] * mesh.h[0] / 3 - tau * mu * cs[1] * sigma_s[0] / 2
+
+    tau = mu * tuning / max(abs(mu) / mesh.h[-1], sigma_t[-1])
+    # j == -1
+    # -------
+    # i == -1
+    bs[-1] =  sigma_s[-1] * cs[-1] * mesh.h[-1] / 6 + tau * mu * cs[-1] * sigma_s[-1] / 2
+    # i == -2
+    bs[-1] += sigma_s[-1] * cs[-2] * mesh.h[-1] / 6 + tau * mu * cs[-2] * sigma_s[-1] / 2
+
+    # j =\= 0,-1
+    for j in range(1, mesh.n_points-1):
+        tau_left = mu * tuning / max(abs(mu) / mesh.h[j - 1], sigma_t[j - 1])
+        tau_right = mu * tuning / max(abs(mu) / mesh.h[j], sigma_t[j])
+        bs[j] = \
+        sigma_s[j - 1] * cs[j - 1] * mesh.h[j - 1] / 6       + sigma_s[j - 1] * cs[j - 1] * tau_left * mu / 2 \
+        + sigma_s[j - 1] * cs[j] * mesh.h[j - 1] / 3         + sigma_s[j - 1] * cs[j] * tau_left * mu / 2     \
+        + sigma_s[j] * cs[j] * mesh.h[j] / 3                 - sigma_s[j] * cs[j] * tau_right * mu / 2        \
+        + sigma_s[j] * cs[j + 1] * mesh.h[j] / 6             - sigma_s[j] * cs[j + 1] * tau_right * mu / 2
+    return bs
 
 def assemble_source(mu: float, mesh: Mesh, data: InputData) -> np.ndarray:
     # b = \int_a^b q(x)*(v(x)+tau*mu*v'(x))dx
@@ -15,7 +47,7 @@ def assemble_source(mu: float, mesh: Mesh, data: InputData) -> np.ndarray:
     #tau = [data.supg_tuning_value/(max(abs(mu)/h[cell], sigma_t[cell])) for cell in mesh.cells]
     tau = [data.supg_tuning_value for cell in mesh.cells]
     b = np.zeros(mesh.n_points)
-    q    = [data.source[mesh.mat_id[cell]] for cell in mesh.cells]
+    q = [data.source[mesh.mat_id[cell]] for cell in mesh.cells]
 
     b[0] = q[0]*mesh.h[0]/2 \
         +tau[0]*(-mu*mesh.h[0]*q[0])
@@ -75,8 +107,8 @@ def assemble_transport_matrix(mu: float, mesh: Mesh, data: InputData) -> csr_mat
         + tau_right*(-mu - sigma_t[0]*h[0]/2)/h[0]
     p = 1
     for i in range(1, N-1):
-        tau_left = mu*tuning/max(abs(mu)/h[i-1],sigma_t[i-1])
-        tau_right = mu*tuning/max(abs(mu)/h[i],  sigma_t[i])
+        tau_left = mu*tuning/max(abs(mu)/h[i-1], sigma_t[i-1])
+        tau_right = mu*tuning/max(abs(mu)/h[i], sigma_t[i])
         p = p + 1
         matrix_data[p] = -mu/2 + sigma_t[i-1]*h[i-1]*1/6 \
             + tau_left*(-mu + sigma_t[i-1]*h[i-1]/2)/h[i-1]

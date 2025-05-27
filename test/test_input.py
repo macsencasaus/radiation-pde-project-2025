@@ -17,6 +17,7 @@ class TestInputData(unittest.TestCase):
             "sigma_t": [3, 4, 5, 6, 7],
             "source": [9, 8, 7, 6, 5],
             "boundary_values": (1, 2),
+            "supg_tuning_value": 0
         }
 
         input_dir = "test/test-inputs/input1.json"

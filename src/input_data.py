@@ -15,6 +15,8 @@ class InputData:
         Length of each zone
     sigma_t : list[float]
         Total cross section sigma_t in each zone
+    sigma_s : list[float]
+        Total scattering cross section sigma_s in each zone
     source : list[float]
         Source q in each zone
     boundary_values: tuple(2)
@@ -33,9 +35,10 @@ class InputData:
             "sigma_t": list,
             "source": list,
             "boundary_values": list,
-            
-            # optional: fields
+
+            # optional fields
             # "supg_tuning_value": float,
+            # "sigma_s" : list,
         }
 
         with open(input_file_path, "r") as file:
@@ -54,6 +57,12 @@ class InputData:
         self.sigma_t = json_data["sigma_t"]
         self.source = json_data["source"]
         self.boundary_values = tuple(json_data["boundary_values"])
-        
+
         if "supg_tuning_value" in json_data:
             self.supg_tuning_value = json_data["supg_tuning_value"]
+
+        if "sigma_s" in json_data:
+            self.sigma_s = json_data["sigma_s"]
+
+            for s, t in zip(self.sigma_s, self.sigma_t):
+                assert s >= 0 and t >= s, "Invalid sigma_s or sigma_t, expected 0 <= sigma_s <= sigma_t for each zone"

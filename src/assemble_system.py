@@ -3,12 +3,15 @@ import numpy as np
 from src.input_data import InputData
 from scipy.sparse import csr_matrix
 
+def assemble_scattered_source(mu: float, mesh: Mesh, data: InputData, cs: np.ndarray) -> np.ndarray:
+    pass
+
 def assemble_source(mu: float, mesh: Mesh, data: InputData) -> np.ndarray:
     # b = \int_a^b q(x)*(v(x)+tau*mu*v'(x))dx
-    
+
     tau = np.zeros(mesh.n_points)
     sigma_t = [data.sigma_t[mesh.mat_id[cell]] for cell in mesh.cells]
-    h = mesh.h 
+    h = mesh.h
     #tau = [data.supg_tuning_value/(max(abs(mu)/h[cell], sigma_t[cell])) for cell in mesh.cells]
     tau = [data.supg_tuning_value for cell in mesh.cells]
     b = np.zeros(mesh.n_points)
@@ -25,7 +28,7 @@ def assemble_source(mu: float, mesh: Mesh, data: InputData) -> np.ndarray:
     n = -1
     alpha0 = data.boundary_values[0]
     b[0] += alpha0*(abs(mu*n)-mu*n)/2
-    
+
     n = 1
     alpha1 = data.boundary_values[1]
     b[-1] += alpha1*(abs(mu*n)-mu*n)/2
@@ -51,17 +54,17 @@ def generate_sparsity_pattern(mesh: Mesh) -> tuple[np.ndarray, np.ndarray]:
     col[p+1] = N-2
     col[p+2] = N-1
     return row, col
-    
+
 # Petrov-Galerkin method
 def assemble_transport_matrix(mu: float, mesh: Mesh, data: InputData) -> csr_matrix:
     # A = \int_a^b (mu*u'(x)+sigma_t*u(x))*(v(x)+tau*mu*v'(x))dx
-  
+
     N = mesh.n_points
     matrix_data = np.zeros(3*N-2)
-  
+
     tuning = data.supg_tuning_value
-    sigma_t = [data.sigma_t[mesh.mat_id[cell]] for cell in mesh.cells] 
-    
+    sigma_t = [data.sigma_t[mesh.mat_id[cell]] for cell in mesh.cells]
+
     h = mesh.h
     tau_right = mu*tuning/max(abs(mu)/h[0],sigma_t[0])
 
@@ -77,9 +80,9 @@ def assemble_transport_matrix(mu: float, mesh: Mesh, data: InputData) -> csr_mat
         p = p + 1
         matrix_data[p] = -mu/2 + sigma_t[i-1]*h[i-1]*1/6 \
             + tau_left*(-mu + sigma_t[i-1]*h[i-1]/2)/h[i-1]
-        p = p + 1        
+        p = p + 1
         matrix_data[p] = (sigma_t[i-1]*h[i-1]+sigma_t[i]*h[i])*2/6 \
-            + tau_left*(mu + sigma_t[i-1]*h[i-1]/2)/h[i-1] + tau_right*(mu - sigma_t[i]*h[i]/2)/h[i] 
+            + tau_left*(mu + sigma_t[i-1]*h[i-1]/2)/h[i-1] + tau_right*(mu - sigma_t[i]*h[i]/2)/h[i]
         p = p + 1
         matrix_data[p] = mu/2 + sigma_t[i]*h[i]*1/6 \
             + tau_right*(-mu - sigma_t[i]*h[i]/2)/h[i]
@@ -91,7 +94,7 @@ def assemble_transport_matrix(mu: float, mesh: Mesh, data: InputData) -> csr_mat
     matrix_data[p+2] = mu/2 + (abs(mu)-(mu*n))/2 + sigma_t[-1]*h[-1]*2/6 \
         + tau_left*( mu + sigma_t[-1]*h[-1]/2)/h[-1]
     [row, col] = generate_sparsity_pattern(mesh)
-    sparseMatrix = csr_matrix((matrix_data, (row, col)),  
+    sparseMatrix = csr_matrix((matrix_data, (row, col)),
                           shape = (mesh.n_points, mesh.n_points))
     return sparseMatrix
 

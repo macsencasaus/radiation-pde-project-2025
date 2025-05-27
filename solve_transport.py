@@ -17,7 +17,7 @@ def exact(x: float, data: InputData) -> float:
     s1, s2, s3 = sigma_t
     q1, q2, q3 = source
 
-    u1 = q1 / s1 * (1 - np.exp(s1 * (x0 - x)))
+    u1 = q1 / s1 * (1 - np.exp(s1 * (x0 - x1)))
     u2 = u1 * np.exp(s2 *(x1 - x2))
     
     if x0 <= x and x <= x1:

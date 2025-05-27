@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     tau = np.zeros(m.n_cells)
     for i in range(m.n_cells):
-        tau[i] = inp.supg_tuning_value * (max(abs(mu) * (m.h[i])**(-1), inp.sigma_t[m.mat_id[i]]))**(-1)
+        tau[i] = inp.supg_tuning_value / max(abs(mu) / m.h[i], inp.sigma_t[m.mat_id[i]])
     
     transport_mat = assemble_transport_matrix(mu, m, inp, tau)
     b = assemble_source(mu, m, inp, tau)
@@ -59,4 +59,4 @@ if __name__ == "__main__":
         plt.plot(m.gridpoints, [exact(x, inp) for x in m.gridpoints], label= "exact", color = "red", alpha = 0.8)
 
     plt.legend() 
-    plt.show()
+    plt.savefig(f"img/{input_dir[:-5]}.png")

@@ -16,19 +16,10 @@ if __name__ == "__main__":
     inp = InputData(input_dir)
     m = Mesh(inp)
 
-    n_angles = 100
+    n_angles = 8
     start_phi = np.zeros(m.n_points)
-    phi = source_iteration(start_phi, n_angles, m, inp, 0.0001, 1000)
-
-    # print("Transport mat:", transport_mat.toarray(), sep="\n")
-    # print("rhs:", b, sep="\n")
-
+    phi = source_iteration(start_phi, n_angles, m, inp, 0.00001, 1000)
     plt.plot(m.gridpoints, phi, label = "FEM", color = "blue", alpha = 0.8, linewidth = 1)
-
-    # we have an exact solution for the case of three zones,
-    # mu = 1, and homogeneous boundary data
-    # if (inp.n_zones == 3 and mu == 1 and inp.boundary_values[0] == 0):
-        #plt.plot(m.gridpoints, [exact(x, inp) for x in m.gridpoints], label= "exact", color = "red", alpha = 0.8)
 
     plt.legend()
     plt.show()

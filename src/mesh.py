@@ -1,4 +1,5 @@
 from src.input_data import InputData
+import numpy as np
 
 
 class Mesh:

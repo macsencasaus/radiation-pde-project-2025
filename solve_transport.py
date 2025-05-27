@@ -39,13 +39,8 @@ if __name__ == "__main__":
 
     mu = 1
 
-    tau = np.zeros(m.n_cells)
-    for i in range(m.n_cells):
-        tau[i] = inp.supg_tuning_value * (max(abs(mu) * (m.h[i])**(-1), inp.sigma_t[m.mat_id[i]]))**(-1)
-    
-    transport_mat = assemble_transport_matrix(mu, m, inp, tau)
-    b = assemble_source(mu, m, inp, tau)
-
+    transport_mat = assemble_transport_matrix(mu, m, inp)
+    b = assemble_source(mu, m, inp)
     u = spsolve(transport_mat, b, permc_spec=None, use_umfpack=True)
 
     # print("Transport mat:", transport_mat.toarray(), sep="\n")

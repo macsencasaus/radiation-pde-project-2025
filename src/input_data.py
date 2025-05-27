@@ -19,6 +19,8 @@ class InputData:
         Source q in each zone
     boundary_values: tuple(2)
         Prescribed value on on the left and right endpoints
+    supg_tuning_value: float
+        Tuning parameter for Petrov-Gallerkin stabilization
     """
 
     def __init__(self, input_file_path: str):
@@ -31,6 +33,9 @@ class InputData:
             "sigma_t": list,
             "source": list,
             "boundary_values": list,
+            
+            # optional: fields
+            # "supg_tuning_value": float,
         }
 
         with open(input_file_path, "r") as file:
@@ -49,3 +54,6 @@ class InputData:
         self.sigma_t = json_data["sigma_t"]
         self.source = json_data["source"]
         self.boundary_values = tuple(json_data["boundary_values"])
+        
+        if "supg_tuning_value" in json_data:
+            self.supg_tuning_value = json_data["supg_tuning_value"]

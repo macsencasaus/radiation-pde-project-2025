@@ -41,7 +41,6 @@ if __name__ == "__main__":
 
     transport_mat = assemble_transport_matrix(mu, m, inp)
     b = assemble_source(mu, m, inp)
-
     u = spsolve(transport_mat, b, permc_spec=None, use_umfpack=True)
 
     # print("Transport mat:", transport_mat.toarray(), sep="\n")

@@ -1,0 +1,3 @@
+--target=wasm32-wasi
+--sysroot=/home/macsen/code/thirdparty/wasi/wasi-sdk-23.0-x86_64-linux/share/wasi-sysroot
+-msimd128

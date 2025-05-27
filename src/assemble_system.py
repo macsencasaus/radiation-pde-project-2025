@@ -10,6 +10,9 @@ def assemble_source(mu: float, mesh: Mesh, data: InputData) -> np.ndarray:
         right_side = data.source[mesh.mat_id[i]] * mesh.h[i]
         bs[i] = (left_side + right_side) / 2
 
+    
+    # NOTE: strong enforcement of boundary conditions
+    # TODO: change to weak enforcement 
     if mu < 0:
         bs[0] = mesh.h[0] * data.source[0] / 2
         bs[-1] = data.boundary_values[1]
@@ -81,6 +84,7 @@ def assemble_transport_matrix(mu: float, mesh: Mesh, data: InputData) -> csr_mat
             dataIdx += 3
     
     # NOTE: strong enforcement of boundary conditions
+    # TODO: Change to weak enforcement
     if mu > 0:
         matrix_data[0] = 1
         matrix_data[1] = 0

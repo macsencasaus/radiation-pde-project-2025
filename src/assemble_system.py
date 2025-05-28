@@ -18,13 +18,13 @@ def assemble_scattered_source(mu: float, mesh: Mesh, data: InputData, cs: np.nda
     # i == 0
     bs[0] =  sigma_s[0] * cs[0] * mesh.h[0] / 3 - tau * mu * cs[0] * sigma_s[0] / 2
     # i == 1
-    bs[0] += sigma_s[0] * cs[1] * mesh.h[0] / 3 - tau * mu * cs[1] * sigma_s[0] / 2
+    bs[0] += sigma_s[0] * cs[1] * mesh.h[0] / 6 - tau * mu * cs[1] * sigma_s[0] / 2
 
     tau = mu * tuning / max(abs(mu) / mesh.h[-1], sigma_t[-1])
     # j == -1
     # -------
     # i == -1
-    bs[-1] =  sigma_s[-1] * cs[-1] * mesh.h[-1] / 6 + tau * mu * cs[-1] * sigma_s[-1] / 2
+    bs[-1] =  sigma_s[-1] * cs[-1] * mesh.h[-1] / 3 + tau * mu * cs[-1] * sigma_s[-1] / 2
     # i == -2
     bs[-1] += sigma_s[-1] * cs[-2] * mesh.h[-1] / 6 + tau * mu * cs[-2] * sigma_s[-1] / 2
 

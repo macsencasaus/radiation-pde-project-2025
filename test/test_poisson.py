@@ -8,6 +8,33 @@ import matplotlib.pyplot as plt
 import sys
 import copy
 
+
+def exact_fish(mesh: Mesh, inputs: InputData):
+    import math 
+    x0 = 0.
+    x1 = 0.5
+    q1 = inputs.source[0]
+    s1 = inputs.sigma_t[0]
+    q2 = inputs.source[1]
+    s2 = inputs.sigma_t[1]
+    a = -(3*q1*s1*s1+6*q1*s1*s2+3*q2*s1*s2)/(4*(s1+s2))
+    b =  (3*q1*s1*s2+6*q2*s1*s2+3*q2*s2*s2)/(4*(s1+s2))
+    s = np.zeros(mesh.n_points)
+    i0 = 0
+    n = 0
+    s[0] = 0.
+    for l in range(0, inputs.n_cells[n]): ###zone 0
+        i = i0+l+1
+        s[i] = -(3 * s1 * q1 * mesh.gridpoints[i] ** 2 / 2 + a * mesh.gridpoints[i])
+       
+    i0 = i0 + inputs.n_cells[n]
+    n = 1
+    for l in range(0,inputs.n_cells[n]): ###zone 1
+        i = i0+l+1
+        s[i] = -(3*s2*q2*(mesh.gridpoints[i]-1)**2/2 + b*(mesh.gridpoints[i]-1))
+            
+    return s
+
 class TestPoisson(unittest.TestCase):
 
     def test_poisson(self):
@@ -23,14 +50,10 @@ class TestPoisson(unittest.TestCase):
 
         solution = fish(m, sig_s, sig_a, forcing, alpha, beta)
 
-        alpha=1/inp.sigma_s[1]
-        c1 = -1/4/alpha + 1/alpha - 1/2/(alpha+1)
-        exact = lambda x : -0.5*x**2 + 0.25*(3+alpha)/(1+alpha)*x  if x <0.5 else -(x**2)/2/alpha + c1*x + (0.5/alpha - c1)
+        # exact_solution = [exact_sol(x) for x in m.gridpoints]
+        # plt.plot(m.gridpoints, exact_fish(m, inp), label = "exact", color = "green", alpha = 0.8, linewidth = 1)
+        # plt.plot(m.gridpoints, solution, label = "fish", color = "blue", alpha = 0.8, linewidth = 1)
+        # plt.legend()
+        # plt.show()
 
-        exact_solution = [exact(x) for x in m.gridpoints]
-        plt.plot(m.gridpoints, exact_solution, label = "exact", color = "green", alpha = 0.8, linewidth = 1)
-        plt.plot(m.gridpoints, solution, label = "fish", color = "blue", alpha = 0.8, linewidth = 1)
-        plt.legend()
-        plt.show()
-
-        #np.testing.assert_array_almost_equal(solution, exact_solution)
+        np.testing.assert_array_almost_equal(solution, exact_fish(m, inp))

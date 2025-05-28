@@ -1,5 +1,6 @@
 from src.input_data import InputData
 from src.mesh import Mesh
+from src.poisson import fish
 from src.assemble_system import assemble_transport_matrix, assemble_source
 from scipy.sparse.linalg import spsolve
 import numpy as np
@@ -27,6 +28,32 @@ def exact(x: float, data: InputData) -> float:
     else:
         return u2 * np.exp(s3 * (x2 - x)) + q3 / s3 * (1 - np.exp(s3 * (x2 - x)))
 
+def exact_fish(mesh: Mesh, inputs: InputData):
+    import math 
+    x0 = 0.
+    x1 = 0.5
+    q1 = inputs.source[0]
+    s1 = inputs.sigma_t[0]
+    q2 = inputs.source[1]
+    s2 = inputs.sigma_t[1]
+    a = -(3*q1*s1*s1+6*q1*s1*s2+3*q2*s1*s2)/(4*(s1+s2))
+    b =  (3*q1*s1*s2+6*q2*s1*s2+3*q2*s2*s2)/(4*(s1+s2))
+    s = np.zeros(mesh.n_points)
+    i0 = 0
+    n = 0
+    s[0] = 0.
+    for l in range(0, inputs.n_cells[n]): ###zone 0
+        i = i0+l+1
+        s[i] = -(3 * s1 * q1 * mesh.gridpoints[i] ** 2 / 2 + a * mesh.gridpoints[i])
+       
+    i0 = i0 + inputs.n_cells[n]
+    n = 1
+    for l in range(0,inputs.n_cells[n]): ###zone 1
+        i = i0+l+1
+        s[i] = -(3*s2*q2*(mesh.gridpoints[i]-1)**2/2 + b*(mesh.gridpoints[i]-1))
+            
+    return s
+
 def compute_L2_error(mesh: Mesh, u_num: np.ndarray, data: InputData) -> float:
     error_sq = 0.0
     for i in range(mesh.n_cells):
@@ -52,7 +79,7 @@ if __name__ == "__main__":
     meshes = []
 
     inp = copy.deepcopy(base_inp)
-    refinements = 15
+    refinements = 10
 
     for _ in range(refinements):
         mesh = Mesh(inp)
@@ -60,14 +87,23 @@ if __name__ == "__main__":
 
         mu = 1
 
-        A = assemble_transport_matrix(mu, mesh, inp)
-        b = assemble_source(mu, mesh, inp)
-        u = spsolve(A, b)
+        # A = assemble_transport_matrix(mu, mesh, inp)
+        # b = assemble_source(mu, mesh, inp)
+        # u = spsolve(A, b)
+        sig_a = [inp.sigma_t[mesh.mat_id[cell]] - inp.sigma_s[mesh.mat_id[cell]] for cell in mesh.cells]
+        sig_s = [inp.sigma_s[mesh.mat_id[cell]] for cell in mesh.cells]
+        forcing = [inp.source[mesh.mat_id[cell]] for cell in mesh.cells]
+        alpha = inp.boundary_values[0]
+        beta = inp.boundary_values[1]
+        u = fish(mesh, sig_s, sig_a, forcing, alpha, beta)
 
-        error = compute_L2_error(mesh, u, inp)
+
+        # error = compute_L2_error(mesh, u, inp)
+        error = 0
         errors.append(error)
 
-        exact_vec = np.array([exact(x, inp) for x in mesh.gridpoints])
+        # exact_vec = np.array([exact(x, inp) for x in mesh.gridpoints])
+        exact_vec = exact_fish(mesh, inp)
         l2error = np.linalg.norm(u - exact_vec)
         l2errors.append(l2error)
 
@@ -89,7 +125,8 @@ if __name__ == "__main__":
         if i == 0:
             print(f"{n:<8d} {l2:<12.4e} {'-':<8} {d2:<12.4e} {'-':<8}")
         else:
-            rate_l2 = np.log(errors[i-1]/errors[i]) / np.log(2)
+            # rate_l2 = np.log(errors[i-1]/errors[i]) / np.log(2)
+            rate_l2 = 0
             rate_d2 = np.log(l2errors[i-1]/l2errors[i]) / np.log(2)
             print(f"{n:<8d} {l2:<12.4e} {rate_l2:<8.2f} {d2:<12.4e} {rate_d2:<8.2f}")
 

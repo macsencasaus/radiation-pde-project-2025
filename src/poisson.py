@@ -9,7 +9,7 @@ def fish(mesh: Mesh, sig_s: np.ndarray, sig_a: np.ndarray,  forcing: np.ndarray,
     b = assemble_rhs_fish(mesh, forcing, alpha, beta)
 
     soln = spsolve(sparseMatrix, b, permc_spec=None, use_umfpack=True)
-    print(soln)
+    # print(soln)
     return soln
 
 def fish_scattered(mesh: Mesh, sig_s: np.ndarray, sig_a: np.ndarray,  forcing: np.ndarray, alpha: float, beta: float) -> np.ndarray:
@@ -17,7 +17,7 @@ def fish_scattered(mesh: Mesh, sig_s: np.ndarray, sig_a: np.ndarray,  forcing: n
     b = assemble_rhs_fish_scattered(mesh, forcing, alpha, beta)
 
     soln = spsolve(sparseMatrix, b, permc_spec=None, use_umfpack=True)
-    print(soln)
+    # print(soln)
     return soln
 
 def assemble_rhs_fish(mesh: Mesh, forcing: np.ndarray, alpha: float, beta: float) -> np.ndarray:
@@ -34,7 +34,7 @@ def assemble_rhs_fish(mesh: Mesh, forcing: np.ndarray, alpha: float, beta: float
     # strong boundary condition enforcement
     b[-1] = beta
 
-    print(b)
+    # print(b)
     return b
 
 def assemble_rhs_fish_scattered(mesh: Mesh, sig_s: np.ndarray,  forcing: np.ndarray, alpha: float, beta: float) -> np.ndarray:
@@ -56,7 +56,7 @@ def assemble_rhs_fish_scattered(mesh: Mesh, sig_s: np.ndarray,  forcing: np.ndar
     # strong boundary condition enforcement
     b[-1] = beta
 
-    print(b)
+    # print(b)
     return b
 
 def assemble_lhs_fish(mesh: Mesh, sig_s: np.ndarray, sig_a: np.ndarray,  forcing: np.ndarray, alpha: float, beta: float) -> np.ndarray:
@@ -82,18 +82,18 @@ def assemble_lhs_fish(mesh: Mesh, sig_s: np.ndarray, sig_a: np.ndarray,  forcing
     p = 1
     for i in range(1, N-1):
         p = p + 1
-        matrix_data[p] =                \
-        + 1 / (3 * sig_s[i - 1] * h[i - 1]) \
+        matrix_data[p] =                    \
+        - 1 / (3 * sig_s[i - 1] * h[i - 1]) \
         + sig_a[i - 1] * h[i - 1] / 6
         p = p + 1
-        matrix_data[p] =                \
-        - 1 / (3 * sig_s[i - 1] * h[i - 1]) \
-        + sig_a[i - 1] * h[i - 1] / 3   \
-        - 1 / (3 * sig_s[i] * h[i])         \
+        matrix_data[p] =                    \
+        + 1 / (3 * sig_s[i - 1] * h[i - 1]) \
+        + sig_a[i - 1] * h[i - 1] / 3       \
+        + 1 / (3 * sig_s[i] * h[i])         \
         + sig_a[i] * h[i] / 3
         p = p + 1
-        matrix_data[p] =                \
-        + 1 / (3 * sig_s[i] * h[i])         \
+        matrix_data[p] =                    \
+        - 1 / (3 * sig_s[i] * h[i])         \
         + sig_a[i] * h[i] / 6
 
     # matrix_data[p+1] =                  \
@@ -111,5 +111,5 @@ def assemble_lhs_fish(mesh: Mesh, sig_s: np.ndarray, sig_a: np.ndarray,  forcing
     [row, col] = generate_sparsity_pattern(mesh)
     sparseMatrix = csr_matrix((matrix_data, (row, col)),
                           shape = (mesh.n_points, mesh.n_points))
-    print(sparseMatrix.toarray())
+    # print(sparseMatrix.toarray())
     return sparseMatrix

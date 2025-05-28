@@ -3,7 +3,15 @@ from src.mesh import Mesh
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from scipy.interpolate import interp1d
+from matplotlib.colors import Normalize
+from matplotlib.animation import PillowWriter
+import cmocean
+from matplotlib.cm import ScalarMappable
+from tqdm import tqdm
+
+# To do
+# --------
+# Psi_bar vs x with color values on each segment
 
 def quad_sweep(psi: np.ndarray, n_angles: int, mesh: Mesh):
     quad = AngularQuadrature(n_angles)
@@ -39,7 +47,7 @@ def quad_sweep(psi: np.ndarray, n_angles: int, mesh: Mesh):
         aspect='auto',
         extent=[angles[0], angles[-1], mesh.gridpoints[0], mesh.gridpoints[-1]],
         origin='lower',
-        cmap='viridis'
+        cmap=cmocean.cm.matter
     )
     plt.colorbar(im)
     plt.xlabel(r"$\mu$")
@@ -48,51 +56,80 @@ def quad_sweep(psi: np.ndarray, n_angles: int, mesh: Mesh):
     plt.tight_layout()
     plt.show()
 
-def plot_rings_on_sphere(psi, n_angles, x_index: int):
-    """
-    Plot psi(mu, x_index) as colored rings on the unit sphere.
-    Each ring lies at polar angle theta = arccos(mu), latitude ring at fixed z.
-    """
-    quad = AngularQuadrature(n_angles)
-    mu = quad.angles
-    values = psi[:, x_index]  # shape (n_angles,)
+def obtain_psi_mu(psi, x_index):
+    values = psi[:, x_index]
+    print(values.shape)
+    return values
 
-    # Set up a dense spherical grid
-    theta = np.linspace(0, np.pi, 200)       # polar angle
-    phi = np.linspace(0, 2 * np.pi, 200)     # azimuthal angle
-    theta_grid, phi_grid = np.meshgrid(theta, phi)
-
-    # Compute spherical coordinates
-    x = np.sin(theta_grid) * np.cos(phi_grid)
-    y = np.sin(theta_grid) * np.sin(phi_grid)
-    z = np.cos(theta_grid)
-
-    # Interpolate psi(mu) → psi(cos(theta)) for smooth mapping
-    interp = interp1d(mu, values, kind='linear', fill_value="extrapolate")
-    color_grid = interp(np.cos(theta_grid))
-
-    # Plot the sphere
+def plot_sphere(vector):
+    n = len(vector)
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(111, projection='3d')
-    sphere = ax.plot_surface(
-        x, y, z,
-        facecolors=plt.cm.viridis((color_grid - np.min(values)) / (np.ptp(values))),
-        rstride=1, cstride=1,
-        antialiased=False, shade=False
-    )
 
-    # Plot setup
-    ax.set_title(rf"Smooth Colored Sphere for $\psi(\mu, x_{{{x_index}}})$")
-    ax.set_xlabel("x")
-    ax.set_ylabel("y")
-    ax.set_zlabel("z")
-    ax.set_xlim([-1, 1])
-    ax.set_ylim([-1, 1])
-    ax.set_zlim([-1, 1])
+    theta = np.linspace(0, np.pi, n)
+    phi = np.linspace(0, 2 * np.pi, 200)
+    phi, theta = np.meshgrid(phi, theta)
+
+    r = 1
+    x = r * np.sin(theta) * np.cos(phi)
+    y = r * np.sin(theta) * np.sin(phi)
+    z = r * np.cos(theta)
+
+    vmin = 0
+    vmax = 1.5
+    cmap=cmocean.cm.matter
+    norm = Normalize(vmin, vmax)
+    color_vals = norm(vector)
+    color_vals = np.tile(color_vals[:, None], (1, phi.shape[1]))
+    surf = ax.plot_surface(x, y, z, facecolors=cmap(color_vals), linewidth=0, antialiased=False, shade=False)
+
     ax.set_box_aspect([1, 1, 1])
+    ax.axis('off')
 
-    # Add colorbar
-    mappable = plt.cm.ScalarMappable(cmap='viridis')
-    mappable.set_array(values)
-    fig.colorbar(mappable, ax=ax, shrink=0.5, label=rf"$\psi(\mu, x_{{{x_index}}})$")
+    mappable = ScalarMappable(cmap=cmap, norm=norm)
+    mappable.set_array(vector)
+    cbar = fig.colorbar(mappable, ax=ax, shrink=0.6, pad=0.1)
+    cbar.set_label("Value")
     plt.show()
+
+
+def animate_sphere_gif(psi, gif_path="sphere.gif", fps=10):
+    n_mu, n_x = psi.shape
+    theta = np.linspace(0, np.pi, n_mu)
+    phi = np.linspace(0, 2 * np.pi, 200)
+    phi, theta_grid = np.meshgrid(phi, theta)
+
+    x = np.sin(theta_grid) * np.cos(phi)
+    y = np.sin(theta_grid) * np.sin(phi)
+    z = np.cos(theta_grid)
+
+    norm = Normalize(vmin=psi.min(), vmax=psi.max())
+    cmap = cmocean.cm.matter
+
+    fig = plt.figure(figsize=(8, 6))
+    ax = fig.add_subplot(111, projection='3d')
+    ax.set_box_aspect([1, 1, 1])
+    ax.axis('off')
+
+    # One persistent colorbar
+    mappable = ScalarMappable(cmap=cmap, norm=norm)
+    mappable.set_array(psi)
+    cbar = fig.colorbar(mappable, ax=ax, shrink=0.6, pad=0.1)
+    cbar.set_label("Value")
+
+    writer = PillowWriter(fps=fps)
+
+    with writer.saving(fig, gif_path, dpi=100):
+        for i in tqdm(range(n_x), desc="Rendering frames"):
+            # Clear just the surface, not the entire plot
+            for coll in reversed(ax.collections):
+                coll.remove()
+
+            plt.title(f"Position {i+1}/{n_x}")
+            values = norm(psi[:, i])
+            color_vals = np.tile(values[:, None], (1, phi.shape[1]))
+            ax.plot_surface(x, y, z, facecolors=cmap(color_vals),
+                            linewidth=0, antialiased=False, shade=False)
+            writer.grab_frame()
+
+    print(f"GIF saved to {gif_path}")

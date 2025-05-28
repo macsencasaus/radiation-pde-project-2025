@@ -1,7 +1,7 @@
 from src.mesh import Mesh
 from src.input_data import InputData
 from src.fixed_point import source_iteration, source_iteration_diffusion
-from src.plotting import quad_sweep, plot_rings_on_sphere
+from src.plotting import quad_sweep, plot_sphere, obtain_psi_mu, animate_sphere_gif
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,4 +31,6 @@ if __name__ == "__main__":
 
     quad_sweep(psi_diffusion, n_angles, m)
 
-    plot_rings_on_sphere(psi_diffusion, n_angles, 0)
+    psi_mu = obtain_psi_mu(psi_diffusion, 775)
+    plot_sphere(psi_mu)
+    animate_sphere_gif(psi_diffusion, gif_path="sphere1.gif", fps=10)

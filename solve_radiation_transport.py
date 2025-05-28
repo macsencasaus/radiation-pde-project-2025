@@ -1,6 +1,7 @@
 from src.mesh import Mesh
 from src.input_data import InputData
-from src.fixed_point import source_iteration
+from src.fixed_point import source_iteration, source_iteration_diffusion
+from src.plotting import quad_sweep
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,10 +19,14 @@ if __name__ == "__main__":
     inp = InputData(input_dir)
     m = Mesh(inp)
 
-    n_angles = 8
-    start_phi = np.zeros(m.n_points)
-    phi = source_iteration(start_phi, n_angles, m, inp, 0.00001, 1000)
-    plt.plot(m.gridpoints, phi * 2, label = "FEM", color = "blue", alpha = 0.8, linewidth = 1)
+    n_angles = 50
+    # quad_sweep(n_angles, m, inp)
+    psi, phi = source_iteration(n_angles, m, inp, 0.00001, 1000)
+    psi_diffusion, phi_diffusion = source_iteration_diffusion(n_angles, m, inp, 0.00001, 1000)
 
+    plt.plot(m.gridpoints, phi * 2, label = "FEM", color = "blue", alpha = 0.8, linewidth = 1)
+    # plt.plot(m.gridpoints, phi_diffusion * 2, label = "FEM-Diffusion", color = "green", alpha = 0.8, linewidth = 1)
+
+    # quad_sweep(n_angles, m, inp)
     plt.legend()
     plt.show()

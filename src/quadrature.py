@@ -1,7 +1,6 @@
 from scipy.special import roots_legendre, eval_legendre
 import numpy as np
 
-
 class AngularQuadrature:
     """
     A class to compute Gauss-Legendre quadrature over the sphere

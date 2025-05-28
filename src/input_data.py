@@ -1,6 +1,5 @@
 import json
 
-
 class InputData:
     """
     A class to input data from JSON file

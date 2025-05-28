@@ -1174,4 +1174,12 @@ where $\Psi^{(0)}$ is isotropic (no dependence on $\Omega$) and satisfies the PD
 $$-\nabla \left(\frac{1}{3\sigma^{s}}\nabla \Psi^{(0)}\right)+\sigma^{a}\Psi^{(s)}=q$$
 where $\Psi^{(0)}=\alpha^{\partial}$ on $\partial D$.
 
+Let $\Phi:L^2(D)\to V^0_h$ be the solution operator to the diffusion problem 
+$$a_h(\Phi(\gamma),v_h)=\int_{D}\frac{1}{3\sigma^{s}}\nabla \Phi(\gamma)\cdot \nabla v_h+\sigma^{a}\Phi(\gamma)v_hdx=\int_{D}\gamma v_hdx$$
+for all $v_h\in V^0_h$ s.t. $(v_h)|_0=(v_h)|_N=0$.0t Pick $\phi^{(0)}$ in a smart way. We solve 
+$$a_h(\phi^{0},v_h)=\int_{D}qv_h,\quad \forall\:v_h\in V_h$$
+along with the b.c. from the original problem. We iterate over the following:
+$$\phi^{n+1/2}=\overline{\Psi_h^{0}(\phi_n)+\Psi_h^{*}},$$
+$$\delta=\Phi(\sigma^{s}(\phi^{n+1/2}-\phi^{n})),$$
+$$\phi^{n}=\phi^{n+1/2}+\delta.$$
 \end{document}

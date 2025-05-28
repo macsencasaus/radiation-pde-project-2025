@@ -94,37 +94,42 @@ def assemble_transport_matrix(mu: float, mesh: Mesh, data: InputData) -> csr_mat
     N = mesh.n_points
     matrix_data = np.zeros(3*N-2)
 
-    tuning = data.supg_tuning_value
+    # assembling cell-wise constants
     sigma_t = [data.sigma_t[mesh.mat_id[cell]] for cell in mesh.cells]
-
     h = mesh.h
-    tau_right = mu*tuning/max(abs(mu)/h[0],sigma_t[0])
+    tuning = data.supg_tuning_value
+    tau = [tuning/max(abs(mu)/h[cell], sigma_t[cell]) for cell in mesh.cells]
 
-    n = -1
-    matrix_data[0] = -mu/2 + (abs(mu)-(mu*n))/2 + sigma_t[0]*h[0]*2/6 \
-        + tau_right*( mu -sigma_t[0]*h[0]/2)/h[0]
-    matrix_data[1] =  mu/2 + sigma_t[0]*h[0]*1/6 \
-        + tau_right*(-mu - sigma_t[0]*h[0]/2)/h[0]
     p = 1
     for i in range(1, N-1):
-        tau_left = mu*tuning/max(abs(mu)/h[i-1], sigma_t[i-1])
-        tau_right = mu*tuning/max(abs(mu)/h[i], sigma_t[i])
+        # T_i,i-1
         p = p + 1
         matrix_data[p] = -mu/2 + sigma_t[i-1]*h[i-1]*1/6 \
-            + tau_left*(-mu + sigma_t[i-1]*h[i-1]/2)/h[i-1]
+            + tau[i-1]*mu*(-mu/h[i-1] + sigma_t[i-1]/2)
+       
+       #T_i,i
         p = p + 1
         matrix_data[p] = (sigma_t[i-1]*h[i-1]+sigma_t[i]*h[i])*2/6 \
-            + tau_left*(mu + sigma_t[i-1]*h[i-1]/2)/h[i-1] + tau_right*(mu - sigma_t[i]*h[i]/2)/h[i]
+            + tau[i-1]*mu*(mu/h[i-1]+ sigma_t[i-1]/2) + tau[i]*mu*(mu/h[i] - sigma_t[i]/2)
+        
+        #T_i,i+1
         p = p + 1
         matrix_data[p] = mu/2 + sigma_t[i]*h[i]*1/6 \
-            + tau_right*(-mu - sigma_t[i]*h[i]/2)/h[i]
-
-    tau_left = mu*tuning/max(abs(mu)/h[1],sigma_t[-1])
-    matrix_data[p+1] = -mu/2 +sigma_t[-1]*h[-1]*1/6 \
-        + tau_left*(-mu + sigma_t[-1]*h[-1]/2)/h[-1]
+            + tau[i]*mu*(-mu/h[i] - sigma_t[i]/2)
+    
+    # first row
+    n = -1
+    matrix_data[0] = -mu/2 + (abs(mu)-(mu*n))/2 + sigma_t[0]*h[0]*2/6 \
+        + tau[0]*mu*( mu/h[0] -sigma_t[0]/2)
+    matrix_data[1] =  mu/2 + sigma_t[0]*h[0]*1/6 \
+        + tau[0]*mu*(-mu/h[0] - sigma_t[0]/2)
+   
+   # last row
     n = 1
+    matrix_data[p+1] = -mu/2 +sigma_t[-1]*h[-1]*1/6 \
+        + tau[-1]*mu*(-mu/h[-1] + sigma_t[-1]/2)
     matrix_data[p+2] = mu/2 + (abs(mu)-(mu*n))/2 + sigma_t[-1]*h[-1]*2/6 \
-        + tau_left*( mu + sigma_t[-1]*h[-1]/2)/h[-1]
+        + tau[-1]*mu*(mu/h[-1] + sigma_t[-1]/2)
     [row, col] = generate_sparsity_pattern(mesh)
     sparseMatrix = csr_matrix((matrix_data, (row, col)),
                           shape = (mesh.n_points, mesh.n_points))

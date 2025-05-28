@@ -41,22 +41,21 @@ def assemble_scattered_source(mu: float, mesh: Mesh, data: InputData, cs: np.nda
 def assemble_source(mu: float, mesh: Mesh, data: InputData) -> np.ndarray:
     # b = \int_a^b q(x)*(v(x)+tau*mu*v'(x))dx
 
-    tau = np.zeros(mesh.n_points)
+    # first, we assemble our cell-wise constants
     sigma_t = [data.sigma_t[mesh.mat_id[cell]] for cell in mesh.cells]
     h = mesh.h
-    #tau = [data.supg_tuning_value/(max(abs(mu)/h[cell], sigma_t[cell])) for cell in mesh.cells]
-    tau = [data.supg_tuning_value for cell in mesh.cells]
-    b = np.zeros(mesh.n_points)
+    tau = [data.supg_tuning_value/(max(abs(mu)/h[cell], sigma_t[cell])) for cell in mesh.cells]
     q = [data.source[mesh.mat_id[cell]] for cell in mesh.cells]
-
-    b[0] = q[0]*mesh.h[0]/2 \
-        +tau[0]*(-mu*mesh.h[0]*q[0])
+    
+    b = np.zeros(mesh.n_points)
+    b[0] = q[0]*(mesh.h[0]/2 - mu* tau[0])
     for i in range(1,mesh.n_points-1):
-        b[i] = q[i-1]*h[i-1]/2+q[i]*h[i]/2 \
-            + tau[i-1]*q[i-1]*mu*h[i-1]- tau[i]*q[i]*mu*h[i]
-    b[-1] = q[-1]*mesh.h[-1]/2 \
-        + tau[-1]*(q[-1]*mu*mesh.h[-1])
+        left_part = q[i-1]*(h[i-1]/2 + mu * tau[i-1])
+        right_part = q[i]*(h[i]/2 -mu*tau[i]) 
+        b[i] = left_part + right_part
+    b[-1] = q[-1]*(mesh.h[-1]/2 +mu*tau[-1])
 
+    # Weak enforcement of boundary conditions:
     n = -1
     alpha0 = data.boundary_values[0]
     b[0] += alpha0*(abs(mu*n)-mu*n)/2
@@ -64,6 +63,7 @@ def assemble_source(mu: float, mesh: Mesh, data: InputData) -> np.ndarray:
     n = 1
     alpha1 = data.boundary_values[1]
     b[-1] += alpha1*(abs(mu*n)-mu*n)/2
+
     return b
 
 def generate_sparsity_pattern(mesh: Mesh) -> tuple[np.ndarray, np.ndarray]:

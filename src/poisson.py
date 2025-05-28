@@ -28,7 +28,7 @@ def assemble_rhs_fish(mesh: Mesh, forcing: np.ndarray, alpha: float, beta: float
     # b[0] = forcing[0] * h[0] / 2
     # strong boundary condition enforcement
     b[0] = alpha
-    for i in range(1,mesh.n_points-1):
+    for i in range(1, mesh.n_points - 1):
         b[i] = forcing[i - 1] * h[i - 1] / 2 + forcing[i] * h[i] / 2
     # b[-1] = forcing[-1] * h[-1] / 2
     # strong boundary condition enforcement
@@ -37,7 +37,7 @@ def assemble_rhs_fish(mesh: Mesh, forcing: np.ndarray, alpha: float, beta: float
     # print(b)
     return b
 
-def assemble_rhs_fish_scattered(mesh: Mesh, sig_s: np.ndarray,  forcing: np.ndarray, alpha: float, beta: float) -> np.ndarray:
+def assemble_rhs_fish_scattered(mesh: Mesh, sig_s: np.ndarray, forcing: np.ndarray, alpha: float, beta: float) -> np.ndarray:
     # sig_s cell indexed
     # forcing point indexed
     h = mesh.h
@@ -59,7 +59,7 @@ def assemble_rhs_fish_scattered(mesh: Mesh, sig_s: np.ndarray,  forcing: np.ndar
     # print(b)
     return b
 
-def assemble_lhs_fish(mesh: Mesh, sig_s: np.ndarray, sig_a: np.ndarray,  forcing: np.ndarray, alpha: float, beta: float) -> np.ndarray:
+def assemble_lhs_fish(mesh: Mesh, sig_s: np.ndarray, sig_a: np.ndarray) -> csr_matrix:
     # sig_s, forcing, and sig_t are cell indexed
     N = mesh.n_points
     matrix_data = np.zeros(3*N-2)

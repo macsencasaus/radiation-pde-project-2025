@@ -1,4 +1,4 @@
-from scipy.special import roots_legendre, eval_legendre
+from scipy.special import roots_legendre
 import numpy as np
 
 class AngularQuadrature:

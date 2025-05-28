@@ -2,6 +2,8 @@ from src.quadrature import AngularQuadrature
 from src.mesh import Mesh
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from scipy.interpolate import interp1d
 
 def quad_sweep(psi: np.ndarray, n_angles: int, mesh: Mesh):
     quad = AngularQuadrature(n_angles)
@@ -28,63 +30,69 @@ def quad_sweep(psi: np.ndarray, n_angles: int, mesh: Mesh):
     fig.canvas.mpl_connect('key_press_event', on_key)
     plt.show()
     psi_avg = quad.average_over_quadrature(psi)
-    
+
     plt.plot(mesh.gridpoints, psi_avg, label = "Psi", color = "blue", alpha = 0.8, linewidth = 1)
 
     plt.figure(figsize=(6, 6))
     im = plt.imshow(
         psi.T,
-        aspect='equal',
+        aspect='auto',
         extent=[angles[0], angles[-1], mesh.gridpoints[0], mesh.gridpoints[-1]],
         origin='lower',
         cmap='viridis'
     )
-    plt.colorbar(im, label=r'$\psi(x, \mu)$')
+    plt.colorbar(im)
     plt.xlabel(r"$\mu$")
     plt.ylabel("x")
     plt.title(r"Intensity $\psi(x, \mu)$")
     plt.tight_layout()
     plt.show()
 
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-
-def plot_rings_on_sphere(psi_star, angles, mesh, x_index: int):
+def plot_rings_on_sphere(psi, n_angles, x_index: int):
     """
     Plot psi(mu, x_index) as colored rings on the unit sphere.
     Each ring lies at polar angle theta = arccos(mu), latitude ring at fixed z.
     """
+    quad = AngularQuadrature(n_angles)
+    mu = quad.angles
+    values = psi[:, x_index]  # shape (n_angles,)
+
+    # Set up a dense spherical grid
+    theta = np.linspace(0, np.pi, 200)       # polar angle
+    phi = np.linspace(0, 2 * np.pi, 200)     # azimuthal angle
+    theta_grid, phi_grid = np.meshgrid(theta, phi)
+
+    # Compute spherical coordinates
+    x = np.sin(theta_grid) * np.cos(phi_grid)
+    y = np.sin(theta_grid) * np.sin(phi_grid)
+    z = np.cos(theta_grid)
+
+    # Interpolate psi(mu) → psi(cos(theta)) for smooth mapping
+    interp = interp1d(mu, values, kind='linear', fill_value="extrapolate")
+    color_grid = interp(np.cos(theta_grid))
+
+    # Plot the sphere
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(111, projection='3d')
-    
-    values = psi_star[:, x_index]
-    norm = plt.Normalize(np.min(values), np.max(values))
-    cmap = plt.get_cmap("viridis")
+    sphere = ax.plot_surface(
+        x, y, z,
+        facecolors=plt.cm.viridis((color_grid - np.min(values)) / (np.ptp(values))),
+        rstride=1, cstride=1,
+        antialiased=False, shade=False
+    )
 
-    phi = np.linspace(0, 2 * np.pi, 200)  # Full circle for each ring
-
-    for l, mu in enumerate(angles):
-        theta = np.arccos(mu)  # polar angle
-        z = np.cos(theta)
-        r = np.sin(theta)  # radius of the ring at this z
-
-        x = r * np.cos(phi)
-        y = r * np.sin(phi)
-
-        ax.plot(x, y, z * np.ones_like(phi), color=cmap(norm(values[l])), linewidth=2)
-
-    ax.set_title(r"Rings Representing $\psi(\mu, x_{%d})$ on Unit Sphere" % x_index)
+    # Plot setup
+    ax.set_title(rf"Smooth Colored Sphere for $\psi(\mu, x_{{{x_index}}})$")
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.set_zlabel("z")
-    ax.set_box_aspect([1, 1, 1])
     ax.set_xlim([-1, 1])
     ax.set_ylim([-1, 1])
     ax.set_zlim([-1, 1])
-    
-    mappable = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    mappable.set_array(values)
-    fig.colorbar(mappable, shrink=0.5, label=r"$\psi(\mu, x_{%d})$" % x_index)
-    plt.show()
+    ax.set_box_aspect([1, 1, 1])
 
+    # Add colorbar
+    mappable = plt.cm.ScalarMappable(cmap='viridis')
+    mappable.set_array(values)
+    fig.colorbar(mappable, ax=ax, shrink=0.5, label=rf"$\psi(\mu, x_{{{x_index}}})$")
+    plt.show()

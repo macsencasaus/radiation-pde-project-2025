@@ -1,13 +1,13 @@
 from src.mesh import Mesh
 from src.input_data import InputData
 from src.fixed_point import source_iteration, source_iteration_diffusion
-from src.plotting import quad_sweep
+from src.plotting import quad_sweep, plot_rings_on_sphere
 
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
 
-# use: source ./.venv/Scripts/activate 
+# use: source ./.venv/Scripts/activate
 # to activate virtual environment (must be in main folder)
 # use: deactivate to leave
 if __name__ == "__main__":
@@ -21,12 +21,14 @@ if __name__ == "__main__":
 
     n_angles = 50
     # quad_sweep(n_angles, m, inp)
-    psi, phi = source_iteration(n_angles, m, inp, 0.00001, 1000)
+    #psi, phi = source_iteration(n_angles, m, inp, 0.00001, 1000)
     psi_diffusion, phi_diffusion = source_iteration_diffusion(n_angles, m, inp, 0.00001, 1000)
 
-    plt.plot(m.gridpoints, phi * 2, label = "FEM", color = "blue", alpha = 0.8, linewidth = 1)
-    # plt.plot(m.gridpoints, phi_diffusion * 2, label = "FEM-Diffusion", color = "green", alpha = 0.8, linewidth = 1)
-
-    # quad_sweep(n_angles, m, inp)
+    plt.figure()
+    plt.plot(m.gridpoints, phi_diffusion * 2, label = "FEM", color = "blue", alpha = 0.8, linewidth = 1)
     plt.legend()
     plt.show()
+
+    quad_sweep(psi_diffusion, n_angles, m)
+
+    plot_rings_on_sphere(psi_diffusion, n_angles, 0)

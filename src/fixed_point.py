@@ -5,6 +5,7 @@ from src.mesh import Mesh
 from src.input_data import InputData
 import numpy as np
 from scipy.sparse.linalg import spsolve
+from tqdm import tqdm
 
 def compute_initial_guess(mesh: Mesh, data: InputData) -> np.ndarray:
     sig_s = [data.sigma_s[mesh.mat_id[cell]] + 1e-10 for cell in mesh.cells]
@@ -50,13 +51,13 @@ def source_iteration_diffusion(n_angles: int, mesh: Mesh, data: InputData, tol: 
     iter = 0
     phi_n = start_phi
     while err > tol and iter < max_iter:
-        for l, angle in enumerate(angles):
+        for l, angle in tqdm(enumerate(angles)):
             A = As[l]
             b = assemble_scattered_source(angle, mesh, data, phi_n)
             psi_zero[l] = spsolve(A, b, permc_spec=None, use_umfpack=True)
         phi_half = quad.average_over_quadrature(psi_zero + psi_star)
         delta = compute_delta(phi_n, phi_half, mesh, data)
-        phi_np1 = phi_half + delta 
+        phi_np1 = phi_half + delta
         err = np.linalg.norm(phi_np1-phi_n, 1)
         phi_n = phi_np1
         iter += 1

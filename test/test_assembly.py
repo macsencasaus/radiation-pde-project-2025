@@ -4,7 +4,7 @@ import numpy as np
 
 from scipy.sparse import csr_matrix
 
-from src.assemble_system import assemble_source, generate_sparse_pattern, assemble_transport_matrix
+from src.assemble_system import assemble_source, generate_sparsity_pattern, assemble_transport_matrix
 from src.input_data import InputData
 from src.mesh import Mesh
 
@@ -27,7 +27,7 @@ class TestAssembleSystem(unittest.TestCase):
         inp = InputData(input_dir)
         m = Mesh(inp)
 
-        rows, cols = generate_sparse_pattern(m)
+        rows, cols = generate_sparsity_pattern(m)
 
         data = np.ones(3 * m.n_points - 2)
 

@@ -2,8 +2,9 @@
     "n_zones" : 5,
     "n_cells" : [1, 1, 1, 1, 1],
     "zone_length" : [1, 1, 1, 1, 1],
+    "sigma_s" : [0, 0, 0, 0, 0],
     "sigma_t" : [10, 10, 10, 10, 10],
     "source" : [2, 4, 6, 4, 2],
     "boundary_values" : [100, 2],
-    "SUPG_tuning" : 1
+    "supg_tuning_value": 0
 }

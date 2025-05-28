@@ -1,9 +1,10 @@
 {
     "n_zones" : 3,
-    "n_cells" : [25000, 25, 25],
+    "n_cells" : [30, 30, 40],
     "zone_length" : [0.3, 0.3, 0.4],
+    "sigma_s" : [0, 0, 0],
     "sigma_t" : [1, 1000, 2],
     "source" : [1, 0, 1],
     "boundary_values" : [0,0],
-    "supg_tuning_value" : 1
+    "supg_tuning_value" : 2
 }

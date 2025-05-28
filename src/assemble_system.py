@@ -3,154 +3,130 @@ import numpy as np
 from src.input_data import InputData
 from scipy.sparse import csr_matrix
 
-def assemble_source(mu: float, mesh: Mesh, data: InputData, tau: np.ndarray) -> np.ndarray:
+def assemble_scattered_source(mu: float, mesh: Mesh, data: InputData, cs: np.ndarray) -> np.ndarray:
+    bs = np.zeros(mesh.n_points)
+
+    sigma_t = [data.sigma_t[mesh.mat_id[cell]] for cell in mesh.cells]
+    sigma_s = [data.sigma_s[mesh.mat_id[cell]] for cell in mesh.cells]
+
+    tuning = data.supg_tuning_value
+    tau = mu * tuning / max(abs(mu) / mesh.h[0], sigma_t[0])
+
+    # j == 0
+    # ------
+    # i == 0
+    bs[0] =  sigma_s[0] * cs[0] * mesh.h[0] / 3 - tau * mu * cs[0] * sigma_s[0] / 2
+    # i == 1
+    bs[0] += sigma_s[0] * cs[1] * mesh.h[0] / 3 - tau * mu * cs[1] * sigma_s[0] / 2
+
+    tau = mu * tuning / max(abs(mu) / mesh.h[-1], sigma_t[-1])
+    # j == -1
+    # -------
+    # i == -1
+    bs[-1] =  sigma_s[-1] * cs[-1] * mesh.h[-1] / 6 + tau * mu * cs[-1] * sigma_s[-1] / 2
+    # i == -2
+    bs[-1] += sigma_s[-1] * cs[-2] * mesh.h[-1] / 6 + tau * mu * cs[-2] * sigma_s[-1] / 2
+
+    # j =\= 0,-1
+    for j in range(1, mesh.n_points-1):
+        tau_left = mu * tuning / max(abs(mu) / mesh.h[j - 1], sigma_t[j - 1])
+        tau_right = mu * tuning / max(abs(mu) / mesh.h[j], sigma_t[j])
+        bs[j] = \
+        sigma_s[j - 1] * cs[j - 1] * mesh.h[j - 1] / 6       + sigma_s[j - 1] * cs[j - 1] * tau_left * mu / 2 \
+        + sigma_s[j - 1] * cs[j] * mesh.h[j - 1] / 3         + sigma_s[j - 1] * cs[j] * tau_left * mu / 2     \
+        + sigma_s[j] * cs[j] * mesh.h[j] / 3                 - sigma_s[j] * cs[j] * tau_right * mu / 2        \
+        + sigma_s[j] * cs[j + 1] * mesh.h[j] / 6             - sigma_s[j] * cs[j + 1] * tau_right * mu / 2
+    return bs
+
+def assemble_source(mu: float, mesh: Mesh, data: InputData) -> np.ndarray:
     # b = \int_a^b q(x)*(v(x)+tau*mu*v'(x))dx
-    
-    # tau = np.zeros(mesh.n_points)
-    # for i in range(len(tau)):
-    #     tau[i] = data.supg_tuning_value * (max(abs(mu) * (mesh.h[i])**(-1), data.sigma_t[i]))**(-1)
 
-    bs = np.zeros(mesh.n_points)
-    for i in range(1, mesh.n_points - 1):
-        left_side = data.source[mesh.mat_id[i - 1]] * mesh.h[i - 1] \
-            + data.source[mesh.mat_id[i - 1]] * tau[i - 1] * mu / mesh.h[i - 1]
-        right_side = data.source[mesh.mat_id[i]] * mesh.h[i] \
-            - data.source[mesh.mat_id[i]] * tau[i] * mu / mesh.h[i]
-        bs[i] = (left_side + right_side) / 2
+    tau = np.zeros(mesh.n_points)
+    sigma_t = [data.sigma_t[mesh.mat_id[cell]] for cell in mesh.cells]
+    h = mesh.h
+    #tau = [data.supg_tuning_value/(max(abs(mu)/h[cell], sigma_t[cell])) for cell in mesh.cells]
+    tau = [data.supg_tuning_value for cell in mesh.cells]
+    b = np.zeros(mesh.n_points)
+    q = [data.source[mesh.mat_id[cell]] for cell in mesh.cells]
 
-    bs[0] = mesh.h[0] * data.source[0] / 2 + (0.5 * (np.abs(mu) + mu) * data.boundary_values[0]) \
-        - data.source[0] * tau[0] * mu / mesh.h[0]
-    bs[-1] = mesh.h[-1] * data.source[-1] / 2 + (0.5 * (np.abs(mu) - mu) * data.boundary_values[1]) \
-        + data.source[-1] * tau[-1] * mu / mesh.h[-1]
+    b[0] = q[0]*mesh.h[0]/2 \
+        +tau[0]*(-mu*mesh.h[0]*q[0])
+    for i in range(1,mesh.n_points-1):
+        b[i] = q[i-1]*h[i-1]/2+q[i]*h[i]/2 \
+            + tau[i-1]*q[i-1]*mu*h[i-1]- tau[i]*q[i]*mu*h[i]
+    b[-1] = q[-1]*mesh.h[-1]/2 \
+        + tau[-1]*(q[-1]*mu*mesh.h[-1])
 
-    return bs
+    n = -1
+    alpha0 = data.boundary_values[0]
+    b[0] += alpha0*(abs(mu*n)-mu*n)/2
 
-def generate_sparse_pattern(mesh: Mesh) -> tuple[np.ndarray, np.ndarray]:
-    rows = np.zeros(3 * (mesh.n_points) - 2) 
-    cols = np.zeros(3 * (mesh.n_points) - 2) 
-    rowsIdx, colsIdx = 0, 0
-    
-    for i in range(mesh.n_points):
-        if i == 0:
-            rows[rowsIdx + 0] = i
-            rows[rowsIdx + 1] = i
+    n = 1
+    alpha1 = data.boundary_values[1]
+    b[-1] += alpha1*(abs(mu*n)-mu*n)/2
+    return b
 
-            cols[colsIdx + 0] = i
-            cols[colsIdx + 1] = i + 1
+def generate_sparsity_pattern(mesh: Mesh) -> tuple[np.ndarray, np.ndarray]:
+    N = mesh.n_points
+    sten   = np.array([-1, 0, 1])
+    col = np.zeros(3*N-2)
+    row = np.zeros(3*N-2)
+    row[0] = 0
+    row[1] = 0
+    col[0] = 0
+    col[1] = 1
+    p = 1
+    for i in range(1,N-1):
+        for k in range(0, 3):
+            p = p + 1
+            col[p] =  i + sten[k]
+            row[p] =  i
+    row[p+1] = N-1
+    row[p+2] = N-1
+    col[p+1] = N-2
+    col[p+2] = N-1
+    return row, col
 
-            colsIdx += 2
-            rowsIdx += 2
-        elif i == mesh.n_points - 1:
-            rows[rowsIdx + 0] = i
-            rows[rowsIdx + 1] = i
-
-            cols[colsIdx + 0] = i - 1
-            cols[colsIdx + 1] = i
-
-            colsIdx += 2
-            rowsIdx += 2
-        else:
-            rows[rowsIdx + 0] = i
-            rows[rowsIdx + 1] = i
-            rows[rowsIdx + 2] = i
-
-            cols[colsIdx + 0] = i - 1
-            cols[colsIdx + 1] = i
-            cols[colsIdx + 2] = i + 1
-
-            colsIdx += 3
-            rowsIdx += 3
-
-    return rows, cols
-    
 # Petrov-Galerkin method
-def assemble_transport_matrix(mu: float, mesh: Mesh, data: InputData, tau: np.ndarray) -> csr_matrix:
+def assemble_transport_matrix(mu: float, mesh: Mesh, data: InputData) -> csr_matrix:
     # A = \int_a^b (mu*u'(x)+sigma_t*u(x))*(v(x)+tau*mu*v'(x))dx
-    rows, cols = generate_sparse_pattern(mesh)
 
-    # tau = np.zeros(mesh.n_points)
-    # for i in range(len(tau)):
-    #     tau[i] = data.supg_tuning_value * (max(abs(mu) * (mesh.h[i])**(-1), data.sigma_t[i]))**(-1)
+    N = mesh.n_points
+    matrix_data = np.zeros(3*N-2)
 
-    matrix_data = np.zeros(3 * (mesh.n_points) - 2) 
-    dataIdx = 0
-    for i in range(mesh.n_points):
-        if i == 0:
-            # diagonal (first entry) (i == j == 0)
-            matrix_data[dataIdx] = -mu / 2 + (1 / 3) * data.sigma_t[0] * mesh.h[0] \
-                + (abs(mu) + mu)/2 \
-                + (mu * mu) * tau[0] / mesh.h[0] - data.sigma_t[0] * tau[0] * mu / 2
-            # upper diagonal (i == j - 1)
-            matrix_data[dataIdx + 1] = mu / 2 + data.sigma_t[0] * mesh.h[0]/6 \
-                - (mu * mu) * tau[0] / mesh.h[0] - data.sigma_t[0] * tau[0] * mu / 2
-            dataIdx += 2
-            pass
-        elif i == mesh.n_points - 1:
-            # lower diagonal (i == j + 1)
-            matrix_data[dataIdx] = -mu / 2 + data.sigma_t[-1] * mesh.h[-1] / 6 \
-                - (mu * mu) * tau[-1] / mesh.h[-1] + data.sigma_t[-1] * tau[-1] * mu / 2
-            # diagonal (last entry) (i == j == -1)
-            matrix_data[dataIdx + 1] = mu / 2 + (1 / 3) * data.sigma_t[-1] * mesh.h[-1] \
-                + (abs(mu) - mu)/2 \
-                + (mu * mu) * tau[-1] / mesh.h[-1] + data.sigma_t[-1] * tau[-1] * mu / 2
-            pass
-        else:
-            # lower diagonal (i == j + 1)
-            matrix_data[dataIdx] = -mu / 2 + data.sigma_t[mesh.mat_id[i - 1]] * mesh.h[i - 1] / 6 \
-                - (mu * mu) * tau[i - 1] / mesh.h[i - 1] + data.sigma_t[mesh.mat_id[i - 1]] * tau[i - 1] * mu / 2
-            # diagonal (i == j)
-            matrix_data[dataIdx + 1] = (1/3) * (mesh.h[i] * data.sigma_t[mesh.mat_id[i]] + mesh.h[i - 1] * data.sigma_t[mesh.mat_id[i - 1]]) \
-                + tau[i] * (mu * mu) / (mesh.h[i]) + tau[i - 1] * (mu * mu) / (mesh.h[i - 1]) \
-                - tau[i - 1] * mu * data.sigma_t[mesh.mat_id[i - 1]] / 2 + tau[i] * mu * data.sigma_t[mesh.mat_id[i]] / 2 
-            # upper diagonal (i == j - 1)
-            matrix_data[dataIdx + 2] = mu / 2 + data.sigma_t[mesh.mat_id[i]] * mesh.h[i]/6 \
-                - (mu * mu) * tau[i] / mesh.h[i] - data.sigma_t[mesh.mat_id[i]] * tau[i] * mu / 2
-            dataIdx += 3
+    tuning = data.supg_tuning_value
+    sigma_t = [data.sigma_t[mesh.mat_id[cell]] for cell in mesh.cells]
 
-    matrix = csr_matrix((matrix_data, (rows, cols)), shape = (mesh.n_points, mesh.n_points))
-    return matrix
+    h = mesh.h
+    tau_right = mu*tuning/max(abs(mu)/h[0],sigma_t[0])
 
-# Regular Galerkin method
-def assemble_transport_matrix_galerkin(mu: float, mesh: Mesh, data: InputData) -> csr_matrix:
-    rows, cols = generate_sparse_pattern(mesh)
+    n = -1
+    matrix_data[0] = -mu/2 + (abs(mu)-(mu*n))/2 + sigma_t[0]*h[0]*2/6 \
+        + tau_right*( mu -sigma_t[0]*h[0]/2)/h[0]
+    matrix_data[1] =  mu/2 + sigma_t[0]*h[0]*1/6 \
+        + tau_right*(-mu - sigma_t[0]*h[0]/2)/h[0]
+    p = 1
+    for i in range(1, N-1):
+        tau_left = mu*tuning/max(abs(mu)/h[i-1], sigma_t[i-1])
+        tau_right = mu*tuning/max(abs(mu)/h[i], sigma_t[i])
+        p = p + 1
+        matrix_data[p] = -mu/2 + sigma_t[i-1]*h[i-1]*1/6 \
+            + tau_left*(-mu + sigma_t[i-1]*h[i-1]/2)/h[i-1]
+        p = p + 1
+        matrix_data[p] = (sigma_t[i-1]*h[i-1]+sigma_t[i]*h[i])*2/6 \
+            + tau_left*(mu + sigma_t[i-1]*h[i-1]/2)/h[i-1] + tau_right*(mu - sigma_t[i]*h[i]/2)/h[i]
+        p = p + 1
+        matrix_data[p] = mu/2 + sigma_t[i]*h[i]*1/6 \
+            + tau_right*(-mu - sigma_t[i]*h[i]/2)/h[i]
 
-    matrix_data = np.zeros(3 * (mesh.n_points) - 2) 
-    dataIdx = 0
-    for i in range(mesh.n_points):
-        if i == 0:
-            # diagonal (first entry) (i == j == 0)
-            matrix_data[dataIdx] = -mu / 2 + (1 / 3) * data.sigma_t[0] * mesh.h[0] + (abs(mu) + mu)/2
-            # upper diagonal (i == j - 1)
-            matrix_data[dataIdx + 1] = mu / 2 + data.sigma_t[0] * mesh.h[0]/6
-            dataIdx += 2
-            pass
-        elif i == mesh.n_points - 1:
-            # lower diagonal (i == j + 1)
-            matrix_data[dataIdx] = -mu / 2 + data.sigma_t[-1] * mesh.h[-1] / 6
-            # diagonal (last entry) (i == j == -1)
-            matrix_data[dataIdx + 1] = mu / 2 + (1 / 3) * data.sigma_t[-1] * mesh.h[-1] + (abs(mu) - mu)/2
-            pass
-        else:
-            # lower diagonal (i == j + 1)
-            matrix_data[dataIdx] = -mu / 2 + data.sigma_t[mesh.mat_id[i - 1]] * mesh.h[i - 1] / 6
-            # diagonal (i == j)
-            matrix_data[dataIdx + 1] = (1/3) * (mesh.h[i] * data.sigma_t[mesh.mat_id[i]] + mesh.h[i - 1] * data.sigma_t[mesh.mat_id[i - 1]])
-            # upper diagonal (i == j - 1)
-            matrix_data[dataIdx + 2] = mu / 2 + data.sigma_t[mesh.mat_id[i]] * mesh.h[i]/6
-            dataIdx += 3
+    tau_left = mu*tuning/max(abs(mu)/h[1],sigma_t[-1])
+    matrix_data[p+1] = -mu/2 +sigma_t[-1]*h[-1]*1/6 \
+        + tau_left*(-mu + sigma_t[-1]*h[-1]/2)/h[-1]
+    n = 1
+    matrix_data[p+2] = mu/2 + (abs(mu)-(mu*n))/2 + sigma_t[-1]*h[-1]*2/6 \
+        + tau_left*( mu + sigma_t[-1]*h[-1]/2)/h[-1]
+    [row, col] = generate_sparsity_pattern(mesh)
+    sparseMatrix = csr_matrix((matrix_data, (row, col)),
+                          shape = (mesh.n_points, mesh.n_points))
+    return sparseMatrix
 
-    matrix = csr_matrix((matrix_data, (rows, cols)), shape = (mesh.n_points, mesh.n_points))
-    return matrix
-
-# Regular Galerkin method
-def assemble_source_galerkin(mu: float, mesh: Mesh, data: InputData) -> np.ndarray:
-    bs = np.zeros(mesh.n_points)
-    for i in range(1, mesh.n_points - 1):
-        left_side = data.source[mesh.mat_id[i - 1]] * mesh.h[i - 1]
-        right_side = data.source[mesh.mat_id[i]] * mesh.h[i]
-        bs[i] = (left_side + right_side) / 2
-
-    bs[0] = mesh.h[0] * data.source[0] / 2 + (0.5 * (np.abs(mu) + mu) * data.boundary_values[0])
-    bs[-1] = mesh.h[-1] * data.source[-1] / 2 + (0.5 * (np.abs(mu) - mu) * data.boundary_values[1])
-
-    return bs

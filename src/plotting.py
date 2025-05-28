@@ -3,8 +3,7 @@ from src.mesh import Mesh
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-def test_quad_sweep(psi: np.ndarray, n_angles: int, mesh: Mesh):
+def quad_sweep(psi: np.ndarray, n_angles: int, mesh: Mesh):
     quad = AngularQuadrature(n_angles)
     angles = quad.angles
     fig, ax = plt.subplots()
@@ -47,11 +46,14 @@ def test_quad_sweep(psi: np.ndarray, n_angles: int, mesh: Mesh):
     plt.tight_layout()
     plt.show()
 
-
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 def plot_rings_on_sphere(psi_star, angles, mesh, x_index: int):
     """
     Plot psi(mu, x_index) as colored rings on the unit sphere.
+    Each ring lies at polar angle theta = arccos(mu), latitude ring at fixed z.
     """
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(111, projection='3d')
@@ -60,24 +62,29 @@ def plot_rings_on_sphere(psi_star, angles, mesh, x_index: int):
     norm = plt.Normalize(np.min(values), np.max(values))
     cmap = plt.get_cmap("viridis")
 
-    phi = np.linspace(0, 2 * np.pi, 100)  # Full circle
+    phi = np.linspace(0, 2 * np.pi, 200)  # Full circle for each ring
 
     for l, mu in enumerate(angles):
         theta = np.arccos(mu)  # polar angle
+        z = np.cos(theta)
+        r = np.sin(theta)  # radius of the ring at this z
 
-        r = np.sin(theta)
-        z = mu
         x = r * np.cos(phi)
         y = r * np.sin(phi)
 
         ax.plot(x, y, z * np.ones_like(phi), color=cmap(norm(values[l])), linewidth=2)
 
-    ax.set_title(r"Rings Representing $\psi(\mu, x_{%d})$" % x_index)
+    ax.set_title(r"Rings Representing $\psi(\mu, x_{%d})$ on Unit Sphere" % x_index)
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.set_zlabel("z")
     ax.set_box_aspect([1, 1, 1])
+    ax.set_xlim([-1, 1])
+    ax.set_ylim([-1, 1])
+    ax.set_zlim([-1, 1])
+    
     mappable = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     mappable.set_array(values)
     fig.colorbar(mappable, shrink=0.5, label=r"$\psi(\mu, x_{%d})$" % x_index)
     plt.show()
+

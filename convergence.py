@@ -73,16 +73,17 @@ if __name__ == "__main__":
         inp.n_cells = [2 * n for n in inp.n_cells]
 
     print("\nEstimated convergence rates:")
+    print(f"N={N_vals[0]}: err = {errors[0]:.2E}, rate = -")
     for i in range(1, len(errors)):
         rate = np.log(errors[i-1] / errors[i]) / np.log(2)
-        print(f"From N={N_vals[i-1]} to N={N_vals[i]}: rate = {rate:.2f}")
+        print(f"N={N_vals[i]}: err = {errors[i]:.2E}, rate = {rate:.2f}")
     
     hs = [max(m.h) for m in meshes]
 
     plt.figure(figsize=(6, 4))
     plt.loglog(hs, errors, marker='o', linestyle='-', color='blue', label=r'$L^2$ error')
 
-    ref_e = errors[0] * (np.array(hs) / hs[0])**2  # O(h^2)
+    ref_e = errors[3] * (np.array(hs) / hs[3])**2  # O(h^2)
     plt.loglog(hs, ref_e, 'k--', label='O(h)')
 
     plt.xlabel(r'$h_{\max}$ (max cell size)')

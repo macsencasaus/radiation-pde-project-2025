@@ -1163,4 +1163,15 @@ To summarize, we
     $$\Psi_h^{l}=\Psi^{l,0}(\phi_{\rm soln})+\Psi^{l,*}.$$
 \end{itemize}
 
+Going back to our original problem:
+$$\Omega\cdot \nabla_x \Psi+\sigma^t(x)\Psi=\frac{\sigma^t(x)}{|\mathbb{S}^2|}\int_{\mathbb{S}^2}\psi(x,\Omega')d\Omega'+q(x)$$
+where
+$\Psi=\alpha^{\partial}$ on the inflow boundary. Let $\epsilon>0$. We can non-dimensionalize this PDE into the form
+$$\Omega\cdot \nabla_x \Psi+\sigma\left(\epsilon+\frac{1}{\epsilon}\right)\Psi=\frac{\sigma}{\epsilon|\mathbb{S}^2|}\int_{\mathbb{S}^2}\psi(x,\Omega')d\Omega'+\epsilon \overline{q}(x)$$
+where $\Psi=\epsilon \overline{alpha}^{\partial}$ on the inflow boundary. We have the uniform limit
+$$\Psi=\Psi^{(0)}+\epsilon \Psi^{(1)}+\epsilon^2\Psi^{(2)}+\cdots$$
+where $\Psi^{(0)}$ is isotropic (no dependence on $\Omega$) and satisfies the PDE
+$$-\nabla \left(\frac{1}{3\sigma^{s}}\nabla \Psi^{(0)}\right)+\sigma^{a}\Psi^{(s)}=q$$
+where $\Psi^{(0)}=\alpha^{\partial}$ on $\partial D$.
+
 \end{document}

@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1748371012 "c:/Users/anshd/OneDrive/Documents/UD/MATH/Year 2/Spring/radiation-pde-project-2025/notes/notes.tex" "output/notes.pdf" "notes" 1748371014 0
+["pdflatex"] 1748382497 "c:/Users/anshd/OneDrive/Documents/UD/MATH/Year 2/Spring/radiation-pde-project-2025/notes/notes.tex" "output/notes.pdf" "notes" 1748382500 0
   "C:/Users/anshd/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1743812173 279800 a041ab456dd5a50d1ac8898b551c967c ""
   "C:/Users/anshd/AppData/Local/MiKTeX/fonts/pk/ljfour/public/esint/dpi600/esint10.pk" 1703199636 10544 6110e252ed2c1097f695e5a4604c8cd0 ""
   "C:/Users/anshd/AppData/Local/MiKTeX/fonts/tfm/public/rsfs/rsfs10.tfm" 1733153380 688 37338d6ab346c2f1466b29e195316aa4 ""
@@ -192,11 +192,11 @@
   "C:/Users/anshd/AppData/Local/Programs/MiKTeX/tex/latex/tocloft/tocloft.sty" 1578908763 37263 3e78d14f0f4b1a30560fea5e04de805d ""
   "C:/Users/anshd/AppData/Local/Programs/MiKTeX/tex/latex/url/url.sty" 1388490452 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "C:/Users/anshd/AppData/Local/Programs/MiKTeX/tex/latex/xcolor/xcolor.sty" 1656236890 56148 51a9a8571c07b9921892ae11063ae853 ""
-  "c:/Users/anshd/OneDrive/Documents/UD/MATH/Year 2/Spring/radiation-pde-project-2025/notes/notes.tex" 1748371012 79306 abe8849838984568cc45bb8bea002365 ""
-  "notes.tex" 1748371012 79306 abe8849838984568cc45bb8bea002365 ""
-  "output/notes.aux" 1748371014 7974 68053947728eb0ce0994fbffd482792e "pdflatex"
-  "output/notes.out" 1748371014 9823 dc408b201745f2e0a34bd221089b5681 "pdflatex"
-  "output/notes.toc" 1748371014 5164 93da2356b602d8c323a8ee257d74c697 "pdflatex"
+  "c:/Users/anshd/OneDrive/Documents/UD/MATH/Year 2/Spring/radiation-pde-project-2025/notes/notes.tex" 1748382494 80181 0452a0ef43be44019f0a7b7eedafe48f ""
+  "notes.tex" 1748382494 80181 0452a0ef43be44019f0a7b7eedafe48f ""
+  "output/notes.aux" 1748382499 7974 68053947728eb0ce0994fbffd482792e "pdflatex"
+  "output/notes.out" 1748382499 9823 dc408b201745f2e0a34bd221089b5681 "pdflatex"
+  "output/notes.toc" 1748382499 5164 93da2356b602d8c323a8ee257d74c697 "pdflatex"
   (generated)
   "output/notes.aux"
   "output/notes.log"

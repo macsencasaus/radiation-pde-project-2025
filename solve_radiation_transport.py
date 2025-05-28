@@ -6,7 +6,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 
-
+# use: source ./.venv/Scripts/activate 
+# to activate virtual environment (must be in main folder)
+# use: deactivate to leave
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: solve_radiation_transport.py <json>")

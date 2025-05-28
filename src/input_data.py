@@ -25,7 +25,7 @@ class InputData:
         Tuning parameter for Petrov-Gallerkin stabilization
     """
 
-    def __init__(self, input_file_path: str):
+    def construct_from_file(self, input_file_path: str):
         self.input_file_path = input_file_path
 
         expected_fields = {
@@ -35,7 +35,6 @@ class InputData:
             "sigma_t": list,
             "source": list,
             "boundary_values": list,
-
             # optional fields
             # "supg_tuning_value": float,
             # "sigma_s" : list,
@@ -65,4 +64,22 @@ class InputData:
             self.sigma_s = json_data["sigma_s"]
 
             for s, t in zip(self.sigma_s, self.sigma_t):
-                assert s >= 0 and t >= s, "Invalid sigma_s or sigma_t, expected 0 <= sigma_s <= sigma_t for each zone"
+                assert (
+                    s >= 0 and t >= s
+                ), "Invalid sigma_s or sigma_t, expected 0 <= sigma_s <= sigma_t for each zone"
+
+    def construct_from_params(self, kwargs):
+        self.n_zones = kwargs["n_zones"]
+        self.n_cells = kwargs["n_cells"]
+        self.zone_length = kwargs["zone_length"]
+        self.sigma_t = kwargs["sigma_t"]
+        self.sigma_s = kwargs["sigma_s"]
+        self.source = kwargs["source"]
+        self.boundary_values = tuple(kwargs["boundary_values"])
+        self.supg_tuning_value = kwargs["supg_tuning_value"]
+
+    def __init__(self, *args, **kwargs):
+        if len(args) == 1:
+            self.construct_from_file(args[0])
+        else:
+            self.construct_from_params(kwargs)

@@ -6,11 +6,12 @@ from scipy.sparse import csr_matrix
 def assemble_scattered_source(mu: float, mesh: Mesh, data: InputData, cs: np.ndarray) -> np.ndarray:
     bs = np.zeros(mesh.n_points)
 
-    sigma_t = [data.sigma_t[mesh.mat_id[cell]] for cell in mesh.cells]
-    sigma_s = [data.sigma_s[mesh.mat_id[cell]] for cell in mesh.cells]
 
+    # assemble cellwise constants
     tuning = data.supg_tuning_value
-    tau = mu * tuning / max(abs(mu) / mesh.h[0], sigma_t[0])
+    sigma_s = [data.sigma_s[mesh.mat_id[cell]] for cell in mesh.cells]
+    tau = [data.supg_tuning_value/(max(abs(mu)/h[cell], sigma_t[cell])) for cell in mesh.cells]
+    h = mesh.h
 
     # j == 0
     # ------

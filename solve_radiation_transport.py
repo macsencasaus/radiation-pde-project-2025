@@ -33,4 +33,4 @@ if __name__ == "__main__":
 
     psi_mu = obtain_psi_mu(psi_diffusion, 775)
     plot_sphere(psi_mu)
-    animate_sphere_gif(psi_diffusion, gif_path="sphere1.gif", fps=10)
+    animate_sphere_gif(psi_diffusion, m.gridpoints, gif_path="sphere3.gif", fps=10)

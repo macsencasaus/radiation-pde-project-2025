@@ -93,7 +93,7 @@ def plot_sphere(vector):
     plt.show()
 
 
-def animate_sphere_gif(psi, gif_path="sphere.gif", fps=10):
+def animate_sphere_gif(psi, x_grid, gif_path="sphere.gif", fps=10):
     n_mu, n_x = psi.shape
     theta = np.linspace(0, np.pi, n_mu)
     phi = np.linspace(0, 2 * np.pi, 200)
@@ -121,11 +121,12 @@ def animate_sphere_gif(psi, gif_path="sphere.gif", fps=10):
 
     with writer.saving(fig, gif_path, dpi=100):
         for i in tqdm(range(n_x), desc="Rendering frames"):
-            # Clear just the surface, not the entire plot
             for coll in reversed(ax.collections):
                 coll.remove()
 
-            plt.title(f"Position {i+1}/{n_x}")
+            ax.set_title(f"x = {x_grid[i]:.4f}")
+
+            cbar.ax.set_ylabel(fr"$\Psi(x={x_grid[i]:.4f}, \mu)$", rotation=270, labelpad=20)
             values = norm(psi[:, i])
             color_vals = np.tile(values[:, None], (1, phi.shape[1]))
             ax.plot_surface(x, y, z, facecolors=cmap(color_vals),

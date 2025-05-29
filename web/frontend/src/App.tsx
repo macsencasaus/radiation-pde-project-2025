@@ -1,17 +1,29 @@
 import { useState, useEffect, useRef } from "react";
-// const Desmos = require("desmos")
-// import * as Desmos from "desmos";
+import Slider from "rc-slider";
+import "rc-slider/assets/index.css";
 
-// type NumberType = "Int" | "Float";
-// interface Field<T> {
-//     name: string;
-//     fieldType: NumberType;
-//     setFieldArr: React.Dispatch<React.SetStateAction<T>>;
-// }
+type NumberType = "Int" | "Float";
+interface Field {
+    name: string;
+    fieldType: NumberType;
+    isZoned: boolean;
+    setFieldArr?: React.Dispatch<React.SetStateAction<number[]>>;
+    setVal?: React.Dispatch<React.SetStateAction<number>>;
+    arr?: number[];
+    val?: number;
+    min: number;
+    max: number;
+    step: number;
+    isExp: boolean;
+}
 
 function App() {
+    
     const defaultTol = 0.0001;
     const defaultMaxIter = 1000;
+    const defaultSUPGTuningValue = 1;
+    const defaultMu = 1;
+    const defaultBoundaryValue = 0;
 
     const defaultNZones = 5;
     const defaultCells = [25, 25, 25, 25, 25];
@@ -19,11 +31,15 @@ function App() {
     const defaultSigmaS = [0, 0, 0, 0.9, 0.9];
     const defaultSigmaT = [50, 5, 0, 1, 1];
     const defaultSource = [25, 0, 0, 0.5, 0];
-    const defaultBoundaryValues = [0, 0];
-    const defaultSUPGTuningValue = 1;
 
+    // Global Params
     const [tol, setTol] = useState<number>(defaultTol);
     const [maxIter, setMaxIter] = useState<number>(defaultMaxIter);
+    const [supgTuningValue, setSUPGTuningValue] = useState<number>(
+        defaultSUPGTuningValue,
+    );
+    const [mu, setMu] = useState<number>(defaultMu)
+    const [boundaryValue, setBoundaryValue] = useState<number>(defaultBoundaryValue);
 
     const [nZones, setNZones] = useState<number>(defaultNZones);
     const [cells, setCells] = useState<number[]>(defaultCells);
@@ -31,10 +47,6 @@ function App() {
     const [sigmaS, setSigmaS] = useState<number[]>(defaultSigmaS);
     const [sigmaT, setSigmaT] = useState<number[]>(defaultSigmaT);
     const [source, setSource] = useState<number[]>(defaultSource);
-    const [_, setBoundaryValues] = useState<number[]>(defaultBoundaryValues);
-    const [supgTuningValue, setSUPGTuningValue] = useState<number>(
-        defaultSUPGTuningValue,
-    );
 
     const [visibleZones, setVisibleZones] = useState<boolean[]>([
         false,
@@ -43,6 +55,7 @@ function App() {
         false,
         false,
     ]);
+
 
     const [gridpoints, setGridpoints] = useState<number[]>([]);
     const [phi, setPhi] = useState<number[]>([]);
@@ -93,7 +106,6 @@ function App() {
         setSigmaS((ss) => [...ss, 0]);
         setSigmaT((st) => [...st, 0]);
         setSource((s) => [...s, 0]);
-        setBoundaryValues((bv) => [...bv, 0]);
     };
 
     const handleSubmit = () => {
@@ -126,52 +138,134 @@ function App() {
             });
     };
 
+    /*
+     * Global Parameters
+     */
+    const globalParamFields: Field[] = [
+        {
+            name: "Tolerance",
+            fieldType: "Float",
+            isZoned: false,
+            setVal: setTol,
+            val: tol,
+            min: 0.0001,
+            max: 1,
+            step: 0.01,
+            isExp: true,
+        },
+        {
+            name: "Max Iterations",
+            fieldType: "Int",
+            isZoned: false,
+            setVal: setMaxIter,
+            val: maxIter,
+            min: 10,
+            max: 1000,
+            step: 10,
+            isExp: false,
+        },
+        {
+            name: "Tuning Value",
+            fieldType: "Float",
+            isZoned: false,
+            setVal: setSUPGTuningValue,
+            val: supgTuningValue,
+            min: 0,
+            max: 10,
+            step: 0.01,
+            isExp: false,
+        },
+        {
+            name: "μ",
+            fieldType: "Float",
+            isZoned: false,
+            setVal: setMu,
+            val: mu,
+            min: -1,
+            max: 1,
+            step: 0.01,
+            isExp: false,
+        },
+        {
+            name: "Boundary Value",
+            fieldType: "Float",
+            isZoned: false,
+            setVal: setBoundaryValue,
+            val: boundaryValue,
+            min: -10,
+            max: 10,
+            step: 0.1,
+            isExp: false,
+        }
+    ];
+
+    const GlobalParams: React.FC = () => {
+        return (
+            <div className="border-gray-300 border rounded-lg p-3">
+                <div className="font-bold text-lg">Global Parameters</div>
+                {globalParamFields.map((field) => {
+                    if (field.val === undefined) return <></>
+                    const [sliderVal, setSliderVal] = useState<number>(field.val)
+
+                    return (
+                        <div key={field.name}>
+                            <div className="flex flex-row pt-5 justify-between">
+                                <div>{field.name}</div>
+                                <input
+                                    className="italic text-right w-20 inline-block"
+                                    value={sliderVal}
+                                    onChange={(e) => {
+                                        const parsingFn =
+                                            field.fieldType == "Int"
+                                                ? parseInt
+                                                : Number;
+                                        field.setVal?.(
+                                            parsingFn(e.target.value),
+                                        );
+                                    }}
+                                />
+                            </div>
+                            <div className="pl-3 pr-3 pt-1">
+                                <Slider
+                                    allowCross={false}
+                                    min={field.min}
+                                    max={field.max}
+                                    step={field.step}
+                                    value={sliderVal}
+                                    onChange={setSliderVal}
+                                    onAfterChange={(v:number) => field.setVal?.(v)}
+                                />
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    const zoneParams: Field[] = [
+        {
+            name: "Cells",
+            fieldType: "Int",
+            isZoned: true,
+            setFieldArr: setCells,
+            arr: cells,
+            min: 1,
+            max: 100,
+            step: 1,
+            isExp: false,
+        }
+    ]
+
     return (
         <>
             <div className="flex flex-row">
-                <div className="m-5 flex-1/2 text-2xl">
-                    <div className="flex flex-row mb-5 justify-between">
-                        <div>Radiation Transport Equation</div>
-                        <button
-                            className="cursor-pointer"
-                            onClick={handleSubmit}
-                        >
-                            Submit
-                        </button>
+                <div className="flex-2/5">
+                    <div className="font-bold m-5 center text-2xl">
+                        Radiation Transport Equation
                     </div>
-                    <div className="flex flex-row gap-3">
-                        <div>Tolerance:</div>
-                        <input
-                            className="italic"
-                            type="number"
-                            value={tol}
-                            step={0.0001}
-                            onChange={(e) => setTol(Number(e.target.value))}
-                        />
-                    </div>
-                    <div className="flex flex-row gap-3 pt-5">
-                        <div>Max Iterations:</div>
-                        <input
-                            className="italic"
-                            type="number"
-                            value={maxIter}
-                            step={10}
-                            onChange={(e) =>
-                                setMaxIter(parseInt(e.target.value))
-                            }
-                        />
-                    </div>
-                    <div className="flex flex-row gap-3 pt-5">
-                        <div>Tuning Value:</div>
-                        <input
-                            className="italic"
-                            type="number"
-                            value={supgTuningValue}
-                            step={0.01}
-                            onChange={(e) =>
-                                setSUPGTuningValue(Number(e.target.value))
-                            }
-                        />
+                    <div className="m-5">
+                        <GlobalParams />
                     </div>
                     {[...Array(nZones).keys()].map((zone) => {
                         return (

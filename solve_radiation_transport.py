@@ -29,10 +29,12 @@ if __name__ == "__main__":
     n_angles = 50
 
     #psi, phi = source_iteration(n_angles, m, inp, 1e-10, 1000)
-    psi_diffusion, phi_diffusion = diffusion_synthetic_acceleration(n_angles, m, inp, 1e-10, 1000)
+    psi, phi = diffusion_synthetic_acceleration(n_angles, m, inp, 1e-10, 1000)
 
     plt.figure()
-    plt.plot(m.gridpoints, phi_diffusion * 2, label = "FEM", color = "blue", alpha = 0.8, linewidth = 1)
+    plt.plot(m.gridpoints, phi * 2, label = "FEM", color = "blue", alpha = 0.8, linewidth = 1)
+    plt.ylabel(r'$2\overline{\psi}(x)$')
+    plt.xlabel(r'$x$')
     plt.legend()
     plt.show()
 

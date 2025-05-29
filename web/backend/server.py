@@ -1,9 +1,8 @@
 import os
 
-import numpy as np
 from flask import Flask, Response, jsonify, request, send_from_directory
 
-from src.fixed_point import source_iteration
+from src.dsa import diffusion_synthetic_acceleration
 from src.input_data import InputData
 from src.mesh import Mesh
 
@@ -26,6 +25,8 @@ def solve() -> Response:
         return Response({"error": "Invalid JSON"}, 400)
 
     try:
+        print(data)
+
         input_data = InputData(**data)
         mesh = Mesh(input_data)
 
@@ -33,10 +34,8 @@ def solve() -> Response:
         tol = data["tol"]
         max_iter = data["max_iter"]
 
-        start_phi = np.zeros(mesh.n_points)
 
-        phi = source_iteration(
-            start_phi=start_phi,
+        _, phi = diffusion_synthetic_acceleration(
             n_angles=n_angles,
             mesh=mesh,
             data=input_data,
@@ -47,6 +46,7 @@ def solve() -> Response:
         return jsonify({"phi": list(phi), "gridpoints": list(mesh.gridpoints)})
         
     except Exception as e:
+        print(e)
         return Response({"error": e}, 500)
 
 

@@ -27,12 +27,3 @@ if __name__ == "__main__":
     plt.xlabel(r'$x$')
     plt.legend()
     plt.show()
-<<<<<<< HEAD
-
-    quad_sweep(psi_diffusion, n_angles, m)
-
-    psi_mu = obtain_psi_mu(psi_diffusion, 775)
-    plot_sphere(psi_mu)
-    animate_sphere_gif(psi_diffusion, m.gridpoints, gif_path="sphere3.gif", fps=10)
-=======
->>>>>>> 8789de1164434a40408273b2c76402ecc01211c0

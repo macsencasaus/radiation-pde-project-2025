@@ -3,40 +3,29 @@ import numpy as np
 from src.input_data import InputData
 from scipy.sparse import csr_matrix
 
-def assemble_scattered_source(mu: float, mesh: Mesh, data: InputData, cs: np.ndarray) -> np.ndarray:
-    bs = np.zeros(mesh.n_points)
+def assemble_scattered_source(mu: float, mesh: Mesh, data: InputData, c: np.ndarray) -> np.ndarray:
+    b = np.zeros(mesh.n_points)
 
-    # sigma_t = [data.sigma_t[mesh.mat_id[cell]] for cell in mesh.cells]
+    # define cell-wise constants
+    sigma_t = [data.sigma_t[mesh.mat_id[cell]] for cell in mesh.cells]
     sigma_s = [data.sigma_s[mesh.mat_id[cell]] for cell in mesh.cells]
-
+    h = mesh.h
     tuning = data.supg_tuning_value
-    tau = mu * tuning / max(abs(mu) / mesh.h[0], sigma_s[0])
+    tau = [tuning / max(abs(mu) / mesh.h[cell], sigma_t[mesh.mat_id[cell]]) for cell in mesh.cells]
 
-    # j == 0
-    # ------
-    # i == 0
-    bs[0] =  sigma_s[0] * cs[0] * mesh.h[0] / 3 - tau * mu * cs[0] * sigma_s[0] / 2
-    # i == 1
-    bs[0] += sigma_s[0] * cs[1] * mesh.h[0] / 6 - tau * mu * cs[1] * sigma_s[0] / 2
+    b[0] = sigma_s[0] * c[0] * (h[0]/3 - mu * tau[0] /2) \
+         + sigma_s[0] * c[1] * (h[0]/6 - mu * tau[0]/2)
+    
+    for i in range(1, mesh.n_points-1):
+        b[i] = sigma_s[i-1] * c[i-1] * (h[i-1] / 6 + mu * tau[i-1] / 2) \
+             + sigma_s[i] * c[i+1] * (h[i] / 6 - mu * tau[i] / 2) \
+             + sigma_s[i-1] * c[i] * (h[i-1]/3 + mu * tau[i-1] /2) \
+             + sigma_s[i] * c[i] * (h[i]/3 - mu * tau[i]/2) 
 
-    tau = mu * tuning / max(abs(mu) / mesh.h[-1], sigma_s[-1])
-    # j == -1
-    # -------
-    # i == -1
-    bs[-1] =  sigma_s[-1] * cs[-1] * mesh.h[-1] / 3 + tau * mu * cs[-1] * sigma_s[-1] / 2
-    # i == -2
-    bs[-1] += sigma_s[-1] * cs[-2] * mesh.h[-1] / 6 + tau * mu * cs[-2] * sigma_s[-1] / 2
-
-    # j =\= 0,-1
-    for j in range(1, mesh.n_points-1):
-        tau_left = mu * tuning / max(abs(mu) / mesh.h[j - 1], sigma_s[j - 1])
-        tau_right = mu * tuning / max(abs(mu) / mesh.h[j], sigma_s[j])
-        bs[j] = \
-        sigma_s[j - 1] * cs[j - 1] * mesh.h[j - 1] / 6       + sigma_s[j - 1] * cs[j - 1] * tau_left * mu / 2 \
-        + sigma_s[j - 1] * cs[j] * mesh.h[j - 1] / 3         + sigma_s[j - 1] * cs[j] * tau_left * mu / 2     \
-        + sigma_s[j] * cs[j] * mesh.h[j] / 3                 - sigma_s[j] * cs[j] * tau_right * mu / 2        \
-        + sigma_s[j] * cs[j + 1] * mesh.h[j] / 6             - sigma_s[j] * cs[j + 1] * tau_right * mu / 2
-    return bs
+    b[-1] = sigma_s[-1] * c[-1] * (h[-1]/3 + mu * tau[-1] /2) \
+         + sigma_s[-1] * c[-2] * (h[-1]/6 + mu * tau[-1]/2)
+    
+    return b
 
 def assemble_source(mu: float, mesh: Mesh, data: InputData) -> np.ndarray:
     # b = \int_a^b q(x)*(v(x)+tau*mu*v'(x))dx

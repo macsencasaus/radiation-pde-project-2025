@@ -6,5 +6,5 @@
     "sigma_t" : [10],
     "source" : [0.05],
     "boundary_values" : [0,0],
-    "supg_tuning_value" : 0.1
+    "supg_tuning_value" : 1
 }

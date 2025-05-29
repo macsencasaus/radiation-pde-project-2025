@@ -5,7 +5,7 @@ from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import spsolve
 
 def fish(mesh: Mesh, sig_s: np.ndarray, sig_a: np.ndarray,  forcing: np.ndarray, alpha: float, beta: float) -> np.ndarray:
-    sparseMatrix = assemble_lhs_fish(mesh, sig_s, sig_a, forcing, alpha, beta)
+    sparseMatrix = assemble_lhs_fish(mesh, sig_s, sig_a)
     b = assemble_rhs_fish(mesh, forcing, alpha, beta)
 
     soln = spsolve(sparseMatrix, b, permc_spec=None, use_umfpack=True)
@@ -13,7 +13,7 @@ def fish(mesh: Mesh, sig_s: np.ndarray, sig_a: np.ndarray,  forcing: np.ndarray,
     return soln
 
 def fish_scattered(mesh: Mesh, sig_s: np.ndarray, sig_a: np.ndarray,  forcing: np.ndarray, alpha: float, beta: float) -> np.ndarray:
-    sparseMatrix = assemble_lhs_fish(mesh, sig_s, sig_a, forcing, alpha, beta)
+    sparseMatrix = assemble_lhs_fish(mesh, sig_s, sig_a)
     b = assemble_rhs_fish_scattered(mesh, forcing, alpha, beta)
 
     soln = spsolve(sparseMatrix, b, permc_spec=None, use_umfpack=True)

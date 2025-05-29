@@ -1,0 +1,47 @@
+subsection SETUP::Parameters
+  subsection A. General Settings
+    set ansatz           = SUPG_q1
+    set data file        = reed
+    set test             = single_shot
+    set tuning parameter = 1
+  end
+  subsection B. Discrete Ordinates Settings
+    subsection a. General
+      set n_angles = 64
+    end
+    subsection b. Iterative Solver
+      set iterative_method = source_iteration
+      set max_iter         = 1000
+      set tol              = 1e-08
+    end
+    subsection c. Acceleration (Preconditioner)
+      set acceleration = none
+      set scaling      = NA
+      set tuning       = 2
+    end
+  end
+  subsection C. Limiters
+    set iter_max             = 10
+    set iter_type            = Jacobi
+    set limiter tolerance    = 1e-08
+    set print_mass           = false
+    set print_num_iterations = false
+    set use_global_limiter   = false
+    set use_local_limiter    = false
+  end
+  subsection D. Estimation of Local Bounds
+    set better_lower_bounds = true
+    set relax               = false
+    set taylor threshold    = 0.005
+  end
+  subsection E. Transport Solver Parameters
+    set strong_thres     = 0.2
+    set trans_solver_tol = 1e-12
+  end
+  subsection F. Misc.
+    set grid_out               = false
+    set n_refinements          = 5
+    set output_bounds          = false
+    set output_each_refinement = false
+  end
+end

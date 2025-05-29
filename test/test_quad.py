@@ -11,6 +11,8 @@ class TestAngularQuadrature(unittest.TestCase):
         self.assertEqual(len(aq.weights), 4)
         np.testing.assert_almost_equal(np.sum(aq.weights), 1.0)
 
+        print(aq.angles)
+
     def test_constructor_odd_raises(self):
         with self.assertRaises(ValueError):
             AngularQuadrature(3)

@@ -110,7 +110,7 @@ def animate_sphere_gif(psi, x_grid, gif_path="sphere.gif", fps=10):
     norm = Normalize(vmin=psi.min(), vmax=psi.max())
     cmap = cmocean.cm.matter
 
-    fig = plt.figure(figsize=(8, 6))
+    fig = plt.figure(figsize=(18, 6))
     ax = fig.add_subplot(111, projection='3d')
     ax.set_box_aspect([1, 1, 1])
     ax.axis('off')
@@ -138,3 +138,69 @@ def animate_sphere_gif(psi, x_grid, gif_path="sphere.gif", fps=10):
             writer.grab_frame()
 
     print(f"GIF saved to {gif_path}")
+
+def animate_sphere_with_phi(psi, x_grid, phi_vals, gif_path="phi_and_sphere.gif", fps=10):
+    assert len(x_grid) == phi_vals.shape[0] == psi.shape[1], "Dimension mismatch"
+
+    n_mu, n_x = psi.shape
+    theta = np.linspace(0, np.pi, n_mu)
+    phi_angle = np.linspace(0, 2 * np.pi, 200)
+    phi_angle, theta_grid = np.meshgrid(phi_angle, theta)
+
+    # Sphere coordinates
+    x = np.sin(theta_grid) * np.cos(phi_angle)
+    y = np.sin(theta_grid) * np.sin(phi_angle)
+    z = np.cos(theta_grid)
+
+    theta = -np.pi / 4 - np.pi/16
+    x1 = z
+    y1 = -y
+    z1 = -x
+
+    x_rot = x1 * np.cos(theta) - y1 * np.sin(theta)
+    y_rot = x1 * np.sin(theta) + y1 * np.cos(theta)
+    z_rot = z1
+
+    norm = Normalize(vmin=psi.min(), vmax=psi.max())
+    cmap = cmocean.cm.matter
+
+    fig = plt.figure(figsize=(14, 6))
+    gs = fig.add_gridspec(1, 2, width_ratios=[1, 1.5])
+    ax1 = fig.add_subplot(gs[0, 0])
+    ax2 = fig.add_subplot(gs[0, 1], projection='3d')
+    plt.subplots_adjust(wspace=0)
+
+    ax2.set_box_aspect([1, 1, 1])
+    ax2.axis('off')
+
+    # Persistent colorbar
+    mappable = ScalarMappable(cmap=cmap, norm=norm)
+    mappable.set_array(psi)
+    cbar = fig.colorbar(mappable, ax=ax2, shrink=0.6, pad=0.1)
+
+    writer = PillowWriter(fps=fps)
+
+    with writer.saving(fig, gif_path, dpi=100):
+        for i in tqdm(range(n_x), desc="Rendering frames"):
+            for coll in reversed(ax2.collections):
+                coll.remove()
+            ax1.clear()
+            ax2.view_init(elev=0, azim=45)
+
+            # Left plot: phi(x) with sliding indicator
+            ax1.plot(x_grid, phi_vals, label=r"$\overline{\Psi(x)}$", color="black")
+            ax1.axvline(x_grid[i], color="red", linestyle="--", label=fr"$x = {x_grid[i]:.4f}$")
+            ax1.set_xlabel("x")
+            ax1.set_ylabel(r"$\overline{\Psi(x)}$")
+            ax1.grid(True)
+
+            # Right plot: colored sphere with rotated orientation
+            ax2.set_title(fr"$\Psi({x_grid[i]:.4f}, \Omega)$")
+            values = norm(psi[:, i])
+            color_vals = np.tile(values[:, None], (1, phi_angle.shape[1]))
+            ax2.plot_surface(x_rot, y_rot, z_rot, facecolors=cmap(color_vals),
+                             linewidth=0, antialiased=False, shade=False)
+            writer.grab_frame()
+
+    print(f"GIF saved to {gif_path}")
+

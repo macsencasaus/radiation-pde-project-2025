@@ -19,7 +19,7 @@ def exact(x: float, data: InputData) -> float:
 
     u1 = q1 / s1 * (1 - np.exp(s1 * (x0 - x1)))
     u2 = u1 * np.exp(s2 *(x1 - x2))
-    
+
     if x0 <= x and x <= x1:
         return q1 / s1 * (1 - np.exp(s1 * (x0-x)))
     elif x1 < x and x <= x2:
@@ -49,9 +49,16 @@ if __name__ == "__main__":
     plt.plot(m.gridpoints, u, label = "FEM", color = "blue", alpha = 0.8, linewidth = 1)
 
     # we have an exact solution for the case of three zones,
-    # mu = 1, and homogeneous boundary data 
+    # mu = 1, and homogeneous boundary data
     if (inp.n_zones == 3 and mu == 1 and inp.boundary_values[0] == 0):
         plt.plot(m.gridpoints, [exact(x, inp) for x in m.gridpoints], label= "exact", color = "red", alpha = 0.8)
 
-    plt.legend() 
+    plt.xlabel("x", fontsize=12)
+    plt.ylabel(r"$\psi(x)$", fontsize=12)
+    plt.grid(True, linestyle=':', linewidth=0.6, alpha=0.7)
+    plt.legend(fontsize=10, loc="best")
+    plt.tight_layout()
+    plt.show()
+
+    plt.legend()
     plt.show()

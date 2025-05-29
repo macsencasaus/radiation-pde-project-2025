@@ -61,7 +61,7 @@ def obtain_psi_mu(psi, x_index):
     print(values.shape)
     return values
 
-def plot_sphere(vector):
+def plot_sphere(vector, save=False):
     n = len(vector)
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(111, projection='3d')
@@ -90,7 +90,11 @@ def plot_sphere(vector):
     mappable.set_array(vector)
     cbar = fig.colorbar(mappable, ax=ax, shrink=0.6, pad=0.1)
     cbar.set_label("Value")
-    plt.show()
+
+    if save:
+        plt.savefig("img/sphere.png", bbox_inches="tight")
+    else:
+        plt.show()
 
 
 def animate_sphere_gif(psi, gif_path="sphere.gif", fps=10):

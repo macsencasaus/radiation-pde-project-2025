@@ -1,0 +1,8 @@
+{
+    "n_angles": 8,
+    "method": "DSA",
+    "max_iter": 1000,
+    "tol": 1e-4,
+
+    "benchmark": "reed.json"
+}

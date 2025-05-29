@@ -30,7 +30,7 @@ def exact(x: float, data: InputData) -> float:
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: solve_transport.py <json>")
+        print(f"Usage: {sys.argv[0]} <json>")
         exit(1)
 
     input_dir = sys.argv[1]

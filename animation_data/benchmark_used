@@ -1,0 +1,29 @@
+# Listing of Parameters
+# ---------------------
+
+# A. General Domain settings
+
+	N_zones = 5
+
+	N_bdry_zones = 2
+
+	mesh_prms = 50, 25, 50, 25, 50
+
+	lengths = 2.0, 1.0, 2.0, 1.0, 2.0 
+
+# B. Material Parameters 
+
+	sigma_s = 0.0, 0.0, 0.0, 0.9, 0.9
+
+	sigma_t = 50.0, 5.0, 0.0, 1.0, 1.0
+
+	source = 25.0, 0.0, 0.0, 0.5, 0.0
+
+	boundary_vals = 0., 0.
+
+# C. A Priori Bounds
+
+	u_max = 1000.
+
+	u_min = 0.0
+

@@ -131,7 +131,7 @@ function App() {
         setZoneLength((zl) => [...zl, 2]);
         setSigmaS((ss) => [...ss, 0]);
         setSigmaT((st) => [...st, 50]);
-        setSource((s) => [...s, 0]);
+        setSource((s) => [...s, 1]);
     };
 
     const removeZone = (zone: number) => {

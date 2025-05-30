@@ -20,7 +20,8 @@ ideally into a fresh Python virtual environment.
 
 Pytest is used for unit testing and can be installed using pip on Windows or apt on Debian-based Linux distros.
 
-Run tests with
+Run unit tests with
 ```
 pytest
 ```
+The main file is solve_radiation_transport.py.

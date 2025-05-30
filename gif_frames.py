@@ -26,5 +26,5 @@ def split_gif_into_frames(gif_path):
                 break
     print(f"Saved {frame} frames to {output_dir}")
 
-#split_gif_into_frames("animation_data/animation.gif")
-split_gif_into_frames("sphere_fast.gif")
+#split_gif_into_fr  ames("animation_data/animation.gif")
+split_gif_into_frames("sphere_final.gif")

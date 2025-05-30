@@ -45,7 +45,15 @@ pip install -r requirements.txt
 ```
 
 ## Testing
+<<<<<<< HEAD
 Pytest is used for unit testing and can be installed using pip on Windows or apt on Debian-based Linux distros. Run unit tests with
+=======
+
+Pytest is used for unit testing and can be installed using pip on Windows or apt on Debian-based Linux distros.
+
+Run unit tests with
+>>>>>>> 41fd0f6438445b7c1a3cb02a6699d2a7b0fc6916
 ```
 pytest
 ```
+The main file is solve_radiation_transport.py.

@@ -25,14 +25,4 @@ if __name__ == "__main__":
     plt.plot(m.gridpoints, phi * 2, label = "FEM", color = "blue", alpha = 0.8, linewidth = 1)
     plt.ylabel(r'$2\overline{\psi}(x)$')
     plt.xlabel(r'$x$')
-    plt.legend()
     plt.show()
-<<<<<<< HEAD
-
-    quad_sweep(psi_diffusion, n_angles, m)
-
-    psi_mu = obtain_psi_mu(psi_diffusion, 775)
-    plot_sphere(psi_mu)
-    animate_sphere_gif(psi_diffusion, m.gridpoints, gif_path="sphere3.gif", fps=10)
-=======
->>>>>>> 8789de1164434a40408273b2c76402ecc01211c0

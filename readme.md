@@ -1,61 +1,95 @@
-# Radiation Transport Solver
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Radiation Transport Solver</title>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    body {
+      max-width: 800px;
+      margin: auto;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+    h1, h2, h3 {
+      margin-top: 2em;
+    }
+    code {
+      background-color: #f5f5f5;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
 
-This project implements a numerical solver for the **radiation transport equation** using both **source iteration** and **Diffusion Synthetic Acceleration (DSA)**. The solver handles piecewise-constant media and boundary conditions, discretized via a **Petrov-Galerkin finite element method** with SUPG stabilization.
+<h1>Radiation Transport Solver</h1>
 
-We consider the steady-state **radiation transfer (linear Boltzmann) equation** for a single energy group.
-Specifically, for some $D\subset \mathbb{R}^3$ we want to find $\psi : D \times \mathbb{S}^2 \rightarrow \mathbb{R}$ such that
+<p>
+This project implements a numerical solver for the <strong>radiation transport equation</strong> using both <strong>source iteration</strong> and <strong>Diffusion Synthetic Acceleration (DSA)</strong>. The solver handles piecewise-constant media and boundary conditions, discretized via a <strong>Petrov-Galerkin finite element method</strong> with SUPG stabilization.
+</p>
 
-$$\Omega \cdot \nabla_\mathbf{x} \psi(\mathbf{x}, \Omega) + \sigma^t(\mathbf{x}) \psi(\mathbf{x}, \Omega) = \frac {\sigma^s(\mathbf{x})} {|\mathbb{S}^2|} \int_{\mathbb{S}^2} \psi(\mathbf{x}, \Omega') \ d \Omega' + q(\mathbf{x}), \quad \text{in } D \times \mathbb{S}^2$$
+<p>
+We consider the steady-state <em>radiation transfer (linear Boltzmann) equation</em> for a single energy group.
+Specifically, for some \( D\subset \mathbb{R}^3 \), we want to find \( \psi : D \times \mathbb{S}^2 \rightarrow \mathbb{R} \) such that
+</p>
 
-\[ 
-\psi(\mathbf{x}, \Omega) =  \alpha^\partial(\mathbf{x}),\quad 
-\text{on } \{\mathbf{x} \in \partial D,\: \Omega \in \mathbb{S}^2 \mid n_\mathbf{x} \cdot \Omega < 0 \}.
+\[
+\Omega \cdot \nabla_\mathbf{x} \psi(\mathbf{x}, \Omega) + \sigma^t(\mathbf{x}) \psi(\mathbf{x}, \Omega) = \frac {\sigma^s(\mathbf{x})} {|\mathbb{S}^2|} \int_{\mathbb{S}^2} \psi(\mathbf{x}, \Omega') \, d \Omega' + q(\mathbf{x}), \quad \text{in } D \times \mathbb{S}^2
 \]
 
-Here $\sigma^t$ is the total cross section, $\sigma^s$ is the scattering cross section, and $\sigma^a = \sigma^t - \sigma^s$ is the absorption cross section, and $q$ is some external source. The function $\psi$ represents the intensity of the radiation at location $\mathbf{x}\in \mathbb{R}^3$ and in the direction $\Omega\in \mathbb{S}^2$.
+\[
+\psi(\mathbf{x}, \Omega) =  \alpha^\partial(\mathbf{x}),\quad 
+\text{on } \{ \mathbf{x} \in \partial D,\: \Omega \in \mathbb{S}^2 \mid n_\mathbf{x} \cdot \Omega < 0 \}.
+\]
 
----
+<p>
+Here \( \sigma^t \) is the total cross section, \( \sigma^s \) is the scattering cross section, and \( \sigma^a = \sigma^t - \sigma^s \) is the absorption cross section. The function \( q \) is an external source. The function \( \psi \) represents the intensity of the radiation at location \( \mathbf{x} \in \mathbb{R}^3 \) and in direction \( \Omega \in \mathbb{S}^2 \).
+</p>
 
-## Primary Files
-- `src/`
-  - `mesh.py`: Mesh generation for 1D domains with heterogeneous media.
-  - `input_data.py`: Parses and validates json data.
-  - `assemble_system.py`: Assembles the linear system.
-  - `fixed_point.py`: Implements the source iteration method.
-  - `dsa.py`: Implements DSA for accelerated convergence.
-  - `plotting.py`: Plotting and animation functions.
-  - `poisson.py`: Solves auxiliary diffusion equations for DSA corrections.
-  - `quadrature.py`: Performs Gauss-Legendre quadrature for angular integration.
-- `solve_radiation_transport.py`: Solves the transport equation with scattering.
-- `solve_transport.py`: Solves a scalar advection transport problem and compares with exact solutions (when applicable).
+<h2>Primary Files</h2>
+<ul>
+  <li><code>src/mesh.py</code>: Mesh generation for 1D domains with heterogeneous media.</li>
+  <li><code>src/input_data.py</code>: Parses and validates JSON data.</li>
+  <li><code>src/assemble_system.py</code>: Assembles the linear system.</li>
+  <li><code>src/fixed_point.py</code>: Implements the source iteration method.</li>
+  <li><code>src/dsa.py</code>: Implements DSA for accelerated convergence.</li>
+  <li><code>src/plotting.py</code>: Plotting and animation functions.</li>
+  <li><code>src/poisson.py</code>: Solves auxiliary diffusion equations for DSA corrections.</li>
+  <li><code>src/quadrature.py</code>: Performs Gauss-Legendre quadrature for angular integration.</li>
+  <li><code>solve_radiation_transport.py</code>: Solves the transport equation with scattering.</li>
+  <li><code>solve_transport.py</code>: Solves a scalar advection transport problem and compares with exact solutions (when applicable).</li>
+</ul>
 
----
+<h2>Installation</h2>
 
-## Installation
+<p>It is strongly recommended to use a virtual environment:</p>
 
-It is strongly recommended to use a virtual environment:
-
-```bash
-python -m venv .venv
+<pre><code>python -m venv .venv
 source .venv/bin/activate       # Linux/macOS
 # or
 .venv\Scripts\activate          # Windows
-```
-Install dependencies with
-```
-pip install -r requirements.txt
-```
+</code></pre>
 
-## Testing
-<<<<<<< HEAD
-Pytest is used for unit testing and can be installed using pip on Windows or apt on Debian-based Linux distros. Run unit tests with
-=======
+<p>Install dependencies with:</p>
 
-Pytest is used for unit testing and can be installed using pip on Windows or apt on Debian-based Linux distros.
+<pre><code>pip install -r requirements.txt
+</code></pre>
 
-Run unit tests with
->>>>>>> 41fd0f6438445b7c1a3cb02a6699d2a7b0fc6916
-```
-pytest
-```
-The main file is solve_radiation_transport.py.
+<h2>Testing</h2>
+
+<p>We use <code>pytest</code> for unit testing. Run tests with:</p>
+
+<pre><code>pytest
+</code></pre>
+
+<p>The main script is <code>solve_radiation_transport.py</code>.</p>
+
+</body>
+</html>

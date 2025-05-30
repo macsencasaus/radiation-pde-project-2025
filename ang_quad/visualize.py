@@ -97,11 +97,16 @@ y = np.outer(np.sin(u), np.sin(v))
 z = np.outer(np.ones(np.size(u)), np.cos(v))
 
 # Plot the surface
-ax1.plot_surface(x, y, z, alpha = 0.3, color = "#f7b679")
+ax1.plot_surface(x, y, z, alpha = 0.2, color = "#f7b679")
 ax1.legend(['quadrature points','x points', 'x-axis'])
-ax1.set_xlim(0,2)
-ax1.set_ylim(0,2)
-ax1.set_zlim(0,2)
+#ax1.set_xticks([])
+#ax1.set_yticks([])
+#ax1.set_zticks([])
+#ax1.set_axis_off()
+ax1.set_xticklabels([])
+ax1.set_yticklabels([])
+ax1.set_zticklabels([])
+
 plt.show()
 
 

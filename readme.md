@@ -10,11 +10,18 @@ This project was made with Python 3.11.
 
 ## Installation
 
+It is strongly recommended to use a virtual environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate       # Linux/macOS
+# or
+.venv\Scripts\activate          # Windows
+```
 Install dependencies with
 ```
 pip install -r requirements.txt
 ```
-ideally into a fresh Python virtual environment.
 
 ## Testing
 

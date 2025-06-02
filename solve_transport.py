@@ -1,10 +1,14 @@
-from src.mesh import Mesh
-from src.input_data import InputData
-from src.assemble_system import assemble_transport_matrix, assemble_source
-from scipy.sparse.linalg import spsolve
+import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
+from scipy.sparse.linalg import spsolve
+
+from src.assemble_system import assemble_source, assemble_transport_matrix
+from src.input_data import InputData
+from src.mesh import Mesh
+from utils.args import Args
+
 
 def exact(x: float, data: InputData) -> float:
     zone_lengths = data.zone_length
@@ -18,10 +22,10 @@ def exact(x: float, data: InputData) -> float:
     q1, q2, q3 = source
 
     u1 = q1 / s1 * (1 - np.exp(s1 * (x0 - x1)))
-    u2 = u1 * np.exp(s2 *(x1 - x2))
+    u2 = u1 * np.exp(s2 * (x1 - x2))
 
     if x0 <= x and x <= x1:
-        return q1 / s1 * (1 - np.exp(s1 * (x0-x)))
+        return q1 / s1 * (1 - np.exp(s1 * (x0 - x)))
     elif x1 < x and x <= x2:
         return u1 * np.exp(s2 * (x1 - x))
     else:
@@ -29,12 +33,9 @@ def exact(x: float, data: InputData) -> float:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print(f"Usage: {sys.argv[0]} <json>")
-        exit(1)
+    args = Args("Solve transport equation in one direction (mu = 1)")
 
-    input_dir = sys.argv[1]
-    inp = InputData(input_dir)
+    inp = InputData(args.benchmark_file)
     m = Mesh(inp)
 
     mu = 1
@@ -46,19 +47,24 @@ if __name__ == "__main__":
     # print("Transport mat:", transport_mat.toarray(), sep="\n")
     # print("rhs:", b, sep="\n")
 
-    plt.plot(m.gridpoints, u, label = "FEM", color = "blue", alpha = 0.8, linewidth = 1)
+    plt.plot(m.gridpoints, u, label="FEM", color="blue", alpha=0.8, linewidth=1)
 
     # we have an exact solution for the case of three zones,
     # mu = 1, and homogeneous boundary data
-    if (inp.n_zones == 3 and mu == 1 and inp.boundary_values[0] == 0):
-        plt.plot(m.gridpoints, [exact(x, inp) for x in m.gridpoints], label= "exact", color = "red", alpha = 0.8)
+    if inp.n_zones == 3 and mu == 1 and inp.boundary_values[0] == 0:
+        plt.plot(
+            m.gridpoints,
+            [exact(x, inp) for x in m.gridpoints],
+            label="exact",
+            color="red",
+            alpha=0.8,
+        )
 
     plt.xlabel("x", fontsize=12)
     plt.ylabel(r"$\psi(x)$", fontsize=12)
-    plt.grid(True, linestyle=':', linewidth=0.6, alpha=0.7)
+    plt.grid(True, linestyle=":", linewidth=0.6, alpha=0.7)
     plt.legend(fontsize=10, loc="best")
     plt.tight_layout()
-    plt.show()
 
     plt.legend()
     plt.show()

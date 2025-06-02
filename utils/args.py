@@ -131,7 +131,7 @@ class Args:
         else:
             if config_options["method"] not in ["DSA", "source-iteration"]:
                 raise Exception(
-                    f"Invalid method, got {config_options['method']}, expected 'DSA' or 'source-iteration'"
+                    f"Invalid method name from {config_file_path}, got {config_options['method']}, expected 'DSA' or 'source-iteration'"
                 )
             self.method = config_options["n_angles"]
 

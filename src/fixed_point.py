@@ -5,7 +5,6 @@ from src.mesh import Mesh
 from src.input_data import InputData
 import numpy as np
 from scipy.sparse.linalg import spsolve
-from tqdm import tqdm
 
 def compute_initial_guess(mesh: Mesh, data: InputData) -> np.ndarray:
     sig_s = [data.sigma_s[mesh.mat_id[cell]] + 1e-10  for cell in mesh.cells]
@@ -40,7 +39,7 @@ def compute_psi_star(angles, mesh: Mesh, data: InputData):
         As[l] = A
     return As, psi_star
 
-def source_iteration(n_angles: int, mesh: Mesh, data: InputData, tol: float, max_iter: int) -> np.ndarray:
+def source_iteration(n_angles: int, mesh: Mesh, data: InputData, tol: float, max_iter: int) -> tuple[np.ndarray, np.ndarray, float, float]:
     quad = AngularQuadrature(n_angles)
     angles = quad.angles
     As, psi_star = compute_psi_star(angles, mesh, data)
@@ -56,9 +55,9 @@ def source_iteration(n_angles: int, mesh: Mesh, data: InputData, tol: float, max
             b = assemble_scattered_source(angle, mesh, data, phi_n)
             psi_zero[l] = spsolve(A, b, permc_spec=None, use_umfpack=True)
         phi_np1 = quad.average_over_quadrature(psi_zero + psi_star)
-        err = np.linalg.norm(phi_np1-phi_n, 1)
+        err = float(np.linalg.norm(phi_np1-phi_n, 1))
         phi_n = phi_np1
         iter += 1
-    print(err, iter)
-    return psi_zero+psi_star, phi_n
+    # print(err, iter)
+    return psi_zero+psi_star, phi_n, err, iter
 

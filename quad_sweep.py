@@ -12,10 +12,10 @@ if __name__ == "__main__":
     m = Mesh(inp)
 
     if args.method == "DSA":
-        psi, phi = diffusion_synthetic_acceleration(
+        psi, phi, _, _ = diffusion_synthetic_acceleration(
             args.n_angles, m, inp, args.tol, args.max_iter
         )
     else:
-        psi, phi = source_iteration(args.n_angles, m, inp, args.tol, args.max_iter)
+        psi, phi, _, _ = source_iteration(args.n_angles, m, inp, args.tol, args.max_iter)
 
     quad_sweep(psi, args.n_angles, m)

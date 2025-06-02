@@ -9,7 +9,7 @@ from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
 
 
-def diffusion_synthetic_acceleration(n_angles: int, mesh: Mesh, data: InputData, tol: float, max_iter: int) -> np.ndarray:
+def diffusion_synthetic_acceleration(n_angles: int, mesh: Mesh, data: InputData, tol: float, max_iter: int) -> tuple[np.ndarray, np.ndarray, float, float]:
     quad = AngularQuadrature(n_angles)
     angles = quad.angles
     As, psi_star = compute_psi_star(angles, mesh, data)
@@ -28,9 +28,8 @@ def diffusion_synthetic_acceleration(n_angles: int, mesh: Mesh, data: InputData,
         phi_half = quad.average_over_quadrature(psi_zero + psi_star)
         delta = compute_delta(phi_n, phi_half, mesh, data)
         phi_np1 = phi_half + delta
-        relative_error = np.linalg.norm(phi_np1-phi_n, 1)/error_scale
+        relative_error = float(np.linalg.norm(phi_np1-phi_n, 1)/error_scale)
         phi_n = phi_np1
         iter += 1
-        #print(relative_error, iter)
-    return psi_zero+psi_star, phi_n
+    return psi_zero+psi_star, phi_n, relative_error, iter
 

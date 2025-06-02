@@ -76,6 +76,14 @@ class Args:
             exit()
 
         config_file_path = os.path.join(self.args.config_dir, self.args.config_file)
+        if not os.path.exists(config_file_path):
+            config_file_path = self.args.config_file
+
+            if not os.path.exists(config_file_path):
+                raise Exception(
+                    f"{config_file_path} not found in {self.args.config_dir} nor in ."
+                )
+
         with open(config_file_path, "r") as file:
             config_options = json.load(file)
 
@@ -92,7 +100,9 @@ class Args:
                 raise Exception(f"Key {field} not found in config file")
 
             if not isinstance(config_options[field], ty):
-                raise Exception(f"Field '{field}' is incorrect type in {config_file_path}, got {type(config_options[field])}, expected {ty}")
+                raise Exception(
+                    f"Field '{field}' is incorrect type in {config_file_path}, got {type(config_options[field])}, expected {ty}"
+                )
 
         if self.args.benchmark_file is not None:
             benchmark_file_path = os.path.join(

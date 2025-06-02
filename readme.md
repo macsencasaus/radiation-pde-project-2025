@@ -13,6 +13,65 @@ Here $\sigma^t$ is the total cross section, $\sigma^s$ is the scattering cross s
 
 ---
 
+## Getting Started
+See [Installation](#installation) for installing dependencies.
+To solve the radiation transport equation, you can run the `solve_radiation_transport.py` script.
+By default, this solves [Reed's problem](https://www.drryanmc.com/solutions-to-reeds-problem/), a common benchmark for solving this equation.
+
+To change the parameters of problem, one can supply a JSON configuration file to the script as a command line argument.
+The [default configuration](./config/default.json) is used when no configuration is supplied and solves Reed's problem.
+The fields of the configuration file are as follows:
+
+- **`n_angles`** *(int)*  
+  Number of angular discretization points (ordinates) used in the quadrature for solving the transport equation.
+
+- **`method`** *(string)*  
+  Iterative method used for solving the transport equation. Options:  
+  - `"DSA"` — Diffusion Synthetic Acceleration (faster convergence)  
+  - `"source-iteration"` — Standard source iteration (slower but simpler)
+
+- **`max_iter`** *(int)*  
+  Maximum number of iterations allowed for the solver.
+
+- **`tol`** *(float)*  
+  Convergence tolerance. Iteration stops when the residual falls below this threshold.
+
+- **`benchmark`** *(string)*  
+  Path to a JSON file containing the physical and geometric parameters of the problem.
+
+The `benchmark` file sets up physical quantities of the system.
+The default configuration uses [reed.json](./benchmarks/reed.json).
+The fields of the benchmark file are as follows:
+
+- **`n_zones`** *(int)*  
+  Number of distinct material zones in the domain.
+
+- **`n_cells`** *(array of ints)*  
+  Number of spatial cells in each zone. The length of this array must match `n_zones`.
+
+- **`zone_length`** *(array of floats)*  
+  Physical length of each zone. The sum defines the total domain length. Length must match `n_zones`.
+
+- **`sigma_s`** *(array of floats)*  
+  Scattering cross section for each zone. Represents the probability of scattering events.
+
+- **`sigma_t`** *(array of floats)*  
+  Total cross section for each zone — the sum of scattering and absorption cross sections.  
+  \( \sigma_t = \sigma_s + \sigma_a \)
+
+- **`source`** *(array of floats)*  
+  External fixed source term in each zone.
+
+- **`boundary_values`** *(array of two floats)*  
+  Incoming angular flux at the left and right boundaries, respectively. Usually set to `0` for vacuum boundaries.
+
+- **`supg_tuning_value`** *(float)*  
+  Stabilization parameter for SUPG (Streamline Upwind Petrov–Galerkin) method, if used.
+
+For more options regarding configuration, use the `-h` or `--help` flag on the `solve_radiation_transport.py` script.
+
+---
+
 ## Primary Files
 - `src/`
   - `mesh.py`: Mesh generation for 1D domains with heterogeneous media.

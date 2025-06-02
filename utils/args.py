@@ -133,7 +133,7 @@ class Args:
                 raise Exception(
                     f"Invalid method name from {config_file_path}, got {config_options['method']}, expected 'DSA' or 'source-iteration'"
                 )
-            self.method = config_options["n_angles"]
+            self.method = config_options["method"]
 
         if self.args.max_iter is not None:
             self.max_iter = self.args.max_iter
